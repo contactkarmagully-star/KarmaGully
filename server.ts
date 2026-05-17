@@ -568,4 +568,3 @@ ${text}
 }
 
 startServer();
-```
