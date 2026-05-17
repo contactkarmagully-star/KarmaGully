@@ -11,6 +11,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import fs from "fs";
 import { getFirebaseAdmin } from "./src/lib/firebaseAdmin.js";
 import { initBot, sendBotMessage } from "./src/services/telegramBot.js";
+import cors from "cors";
 
 dotenv.config();
 
@@ -29,6 +30,11 @@ async function startServer() {
   initBot().catch(err => console.error("Bot init failed:", err));
 
   app.use(express.json());
+  
+  app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
   // Resend Initialization
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
