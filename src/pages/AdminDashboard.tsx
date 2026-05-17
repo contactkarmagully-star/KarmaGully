@@ -1808,7 +1808,7 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
                 type="button"
                 onClick={async () => {
                   try {
-                    const res = await fetch('/api/test-telegram');
+                    const res = await fetch('https://karmagully-website.onrender.com/api/test-telegram');
                     const data = await res.json();
                     if (data.success) {
                       alert("✅ Test message sent!");
@@ -3473,7 +3473,7 @@ function SupportTab() {
 
       // Notify user via Telegram if it's a telegram ticket
       if (activeTicket.source === 'telegram' && activeTicket.telegramChatId) {
-        await fetch('/api/notify-user-telegram', {
+        await fetch('https://karmagully-website.onrender.com/api/notify-user-telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3520,7 +3520,7 @@ function SupportTab() {
         if (status === 'closed') {
           notifyMsg += `\n\nThank you for reaching out! Use /start for any new issues.`;
         }
-        await fetch('/api/notify-user-telegram', {
+        await fetch('https://karmagully-website.onrender.com/api/notify-user-telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3797,7 +3797,7 @@ function HealthTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/cloudinary/usage')
+    fetch('https://karmagully-website.onrender.com/api/cloudinary/usage')
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);

@@ -154,7 +154,7 @@ export default function Checkout() {
       }
       
       // Trigger Notifications (Email + Telegram) in background
-      fetch('/api/notifications/order', {
+      fetch('https://karmagully-website.onrender.com/api/notifications/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
