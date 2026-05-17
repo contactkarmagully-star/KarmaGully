@@ -110,69 +110,24 @@ export async function initBot() {
   // Handle /start
   bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
-    await setBotState(chatId, null); // Reset state
+    // Set state to waiting for either a category selection or an order status ID
+    await setBotState(chatId, { step: 'waiting_for_order_id_status' }); 
 
-    const welcomeMsg = `
-👋 <b>Welcome to Karma Gully Support!</b>
+    const welcomeMsg = `<b>Welcome to KarmaGully Support! How can we help you today?</b>`;
 
-I'm here to help you with your orders and inquiries. Please choose an option from the menu below:
+    const categoryButtons = Object.entries(CATEGORIES).map(([id, label]) => [{ text: label }]);
 
-🔍 <b>Order Status</b> - Quickly check your order's progress.
-🎫 <b>Open a Ticket</b> - Get help from our human team.
-    `;
-
-    const keyboard = {
+    await bot.sendMessage(chatId, welcomeMsg, { 
+      parse_mode: 'HTML',
       reply_markup: {
-        keyboard: [
-          [{ text: '🔍 Order Status' }],
-          [{ text: '🎫 Open a Ticket' }],
-        ],
+        keyboard: categoryButtons,
         resize_keyboard: true,
         one_time_keyboard: false
       }
-    };
+    });
 
-    bot.sendMessage(chatId, welcomeMsg, { parse_mode: 'HTML', ...keyboard });
-  });
-
-  // Handle Keyboard Buttons
-  bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    if (text === '🔍 Order Status') {
-      await setBotState(chatId, { step: 'waiting_for_order_id_status' });
-      bot.sendMessage(chatId, "Please enter your <b>Order ID</b> (e.g., KG26-XXXXXX):", { parse_mode: 'HTML' });
-      return;
-    }
-
-    if (text === '🎫 Open a Ticket') {
-      const categoryButtons = Object.entries(CATEGORIES).map(([id, label]) => [{ text: label }]);
-      await setBotState(chatId, { step: 'waiting_for_category' });
-      bot.sendMessage(chatId, "What kind of issue are you facing? Please select a category:", {
-        reply_markup: {
-          keyboard: categoryButtons,
-          resize_keyboard: true,
-          one_time_keyboard: true
-        }
-      });
-      return;
-    }
-
-    // Handle Category Selection
-    const state = await getBotState(chatId) as any;
-    if (state?.step === 'waiting_for_category') {
-      const categoryKey = Object.keys(CATEGORIES).find(key => CATEGORIES[key] === text);
-      if (categoryKey) {
-        await setBotState(chatId, { step: 'waiting_for_issue_desc', category: categoryKey });
-        bot.sendMessage(chatId, `Got it. Now, please describe your issue in detail. You can even send a photo if needed (coming soon!).`, {
-          reply_markup: { remove_keyboard: true }
-        });
-      } else {
-        bot.sendMessage(chatId, "Please select a valid category from the keyboard.");
-      }
-      return;
-    }
+    // Automatically prompt for Order ID as it's the most common request
+    bot.sendMessage(chatId, "Please enter your <b>Order ID</b> (e.g., KG26-XXXXXX):", { parse_mode: 'HTML' });
   });
 
   // Handle All Messages (for steps)
@@ -221,6 +176,22 @@ I'm here to help you with your orders and inquiries. Please choose an option fro
       return; // Admin messages handled
     }
 
+    // Handle Category Buttons (Main Menu)
+    const categoryKey = Object.keys(CATEGORIES).find(key => CATEGORIES[key] === text);
+    if (categoryKey) {
+      if (categoryKey === 'Order Status') {
+        await setBotState(chatId, { step: 'waiting_for_order_id_status' });
+        bot.sendMessage(chatId, "Please enter your <b>Order ID</b> (e.g., KG26-XXXXXX):", { parse_mode: 'HTML' });
+      } else {
+        await setBotState(chatId, { step: 'waiting_for_issue_desc', category: categoryKey });
+        bot.sendMessage(chatId, `Got it. Now, please describe your <b>${categoryKey}</b> issue in detail.`, {
+          parse_mode: 'HTML',
+          reply_markup: { remove_keyboard: true }
+        });
+      }
+      return;
+    }
+
     const state = await getBotState(chatId) as any;
     
     // Customer flow
@@ -254,6 +225,8 @@ We'll drop you an update when it ships!
         } catch (err) {
           bot.sendMessage(chatId, "Error fetching order status. Try again later.");
         }
+        // Don't clear state completely if they want to click another category button 
+        // but for now, clearing state after a specific search is fine.
         await setBotState(chatId, null);
       } 
       else if (state.step === 'waiting_for_issue_desc') {

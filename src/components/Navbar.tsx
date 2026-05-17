@@ -97,8 +97,8 @@ export default function Navbar() {
             </Link>
           </div>
           
-          <div className="hidden md:block">
-            <div className={`ml-10 flex items-baseline space-x-8 transition-all duration-300 ${isSearchOpen ? 'w-0 opacity-0 invisible overflow-hidden' : 'w-auto opacity-100 visible'}`}>
+          <div className="hidden md:block flex-1 mx-8">
+            <div className={`flex items-baseline space-x-8 transition-all duration-300 ${isSearchOpen ? 'opacity-0 invisible w-0 overflow-hidden' : 'opacity-100 visible w-auto'}`}>
               <Link to="/" className="text-slate-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] px-1">Home</Link>
               <Link to="/shop" className="text-slate-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em]">Collections</Link>
               <Link to="/categories" className="text-slate-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em]">Categories</Link>
@@ -137,37 +137,44 @@ export default function Navbar() {
               <Link to="/support" className="text-slate-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em]">Support</Link>
               <Link to="/shop?category=Featured" className="text-slate-400 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em]">Featured</Link>
             </div>
+            
+            {/* Search Input when open - positioned naturally in the center area */}
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.form 
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: '100%', opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  onSubmit={handleSearch}
+                  className="flex items-center"
+                >
+                  <input 
+                    type="text"
+                    autoFocus
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search posters..."
+                    className="w-full bg-black/60 border border-white/20 rounded-xl px-4 py-2 text-xs text-white font-bold uppercase tracking-widest focus:outline-none focus:border-purple-500 placeholder:text-white/20"
+                  />
+                  <button type="button" onClick={() => setIsSearchOpen(false)} className="ml-2 p-2 text-white/40 hover:text-white transition-all">
+                    <X className="w-4 h-4" />
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden lg:flex items-center relative mr-2">
-               <button 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 text-slate-400 hover:text-white transition-colors"
-               >
-                 <Search className="w-5 h-5" />
-               </button>
-               <AnimatePresence>
-                 {isSearchOpen && (
-                   <motion.form 
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 250, opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    onSubmit={handleSearch}
-                    className="absolute right-full mr-2"
-                   >
-                     <input 
-                      type="text"
-                      autoFocus
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="Search posters..."
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] text-white font-bold uppercase tracking-widest focus:outline-none focus:border-purple-500 placeholder:text-white/10"
-                     />
-                   </motion.form>
-                 )}
-               </AnimatePresence>
-            </div>
+            {!isSearchOpen && (
+              <div className="hidden lg:flex items-center relative mr-2">
+                <button 
+                  onClick={() => setIsSearchOpen(true)}
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+            )}
 
             <button 
               onClick={() => setIsCartOpen(true)}
