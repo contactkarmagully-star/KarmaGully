@@ -1,11 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 0. Global Safety Net
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // --- Helpers ---
     function isSignedIn() {
       return request.auth != null;
@@ -13,8 +8,15 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'c.b.sharma321@gmail.com'
+        request.auth.token.get('email', '').lower() == 'c.b.sharma321@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isTicketOwner(ticketData) {
+      return isSignedIn() && (
+        ticketData.get('userId', '') == request.auth.uid || 
+        ticketData.get('userEmail', '').lower() == request.auth.token.get('email', '').lower()
       );
     }
 
@@ -47,18 +49,40 @@ service cloud.firestore {
       }
     }
 
+    // --- Categories ---
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidCategory(incoming());
+      allow delete: if isAdmin();
+
+      function isValidCategory(data) {
+        return data.keys().hasAll(['name', 'imageUrl'])
+          && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+          && data.imageUrl is string && data.imageUrl.size() <= 1048576;
+      }
+    }
+
     // --- Orders ---
     match /orders/{orderId} {
       // Anyone can create an order (required for guest checkout)
       allow create: if isValidOrder(incoming());
       
-      // Admins can read all, individuals can read their own if authenticated and associated
-      allow get: if isAdmin() || (isSignedIn() && resource.data.customerInfo.email == request.auth.token.email);
-      allow list: if isAdmin() || (isSignedIn() && resource.data.customerInfo.email == request.auth.token.email);
+      // Anyone can get a specific order by ID (required for success page and guest collision check)
+      allow get: if true;
+      
+      // Admins can read all, individuals can read their own list if authenticated and associated
+      allow list: if isSignedIn() && (
+        (resource.data.get('userId', '') == request.auth.uid) || 
+        (resource.data.get('customerInfo', {}).get('email', '') == (request.auth.token.get('email', ''))) ||
+        isAdmin()
+      );
 
-      // Only admins can update status
-      allow update: if isAdmin() && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus'])
+      // Admins can update full manifest, individuals can't update unless specific logic is needed
+      allow update: if isAdmin();
+
+      // Allow deletion if admin or if the user owns it and it's still pending
+      allow delete: if isAdmin() || (
+        isSignedIn() && resource.data.get('userId', null) == request.auth.uid && resource.data.orderStatus == 'Pending'
       );
 
       function isValidOrder(data) {
@@ -66,7 +90,8 @@ service cloud.firestore {
           && data.totalAmount is number && data.totalAmount >= 0
           && data.paymentType in ['COD', 'Online']
           && data.orderStatus is string
-          && data.createdAt == request.time;
+          && data.createdAt == request.time
+          && (!data.keys().contains('userId') || data.userId == null || data.userId is string);
       }
     }
     
@@ -102,6 +127,138 @@ service cloud.firestore {
           && data.content is list
           && data.updatedAt is number;
       }
+    }
+
+    // --- Tickets ---
+    match /tickets/{ticketId} {
+      allow read, write: if isAdmin();
+      allow create: if true; // Support creation (website/telegram)
+      allow get: if true; // Allow anyone with ID to check status (guest support)
+      allow list: if isTicketOwner(resource.data);
+      allow update: if isTicketOwner(resource.data);
+
+      match /messages/{messageId} {
+        allow read, write: if isAdmin();
+        allow list, create: if isTicketOwner(get(/databases/$(database)/documents/tickets/$(ticketId)).data);
+      }
+    }
+
+    // --- Bot States ---
+    match /botStates/{chatId} {
+      allow read, write: if true; // Managed by bot service
+    }
+
+    // --- Blogs ---
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow create, update: if isAdmin() && isValidBlog(incoming());
+      allow delete: if isAdmin();
+
+      function isValidBlog(data) {
+        return data.keys().hasAll(['title', 'slug', 'content', 'status'])
+          && data.title is string && data.title.size() > 0
+          && data.slug is string && data.slug.size() > 0
+          && data.content is string;
+      }
+    }
+
+    // --- Blog Settings ---
+    match /blogSettings/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- Subscribers ---
+    match /subscribers/{email} {
+      allow create, update: if true; // Public can subscribe
+      allow read: if isAdmin(); // Only admins can see lists
+      allow list: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    function isApproved() {
+      return resource != null && resource.data.status == 'approved';
+    }
+
+    // --- Reviews ---
+    match /reviews/{reviewId} {
+      allow get: if resource.data.status == 'approved' || isAdmin();
+      allow list: if isAdmin() || (resource.data.status == 'approved');
+      allow create: if isValidReview(incoming()) && (incoming().status in ['pending', 'approved'] || isAdmin());
+      allow update, delete: if isAdmin();
+
+      function isValidReview(data) {
+        return data.keys().hasAll(['productId', 'rating', 'name', 'comment', 'status', 'createdAt'])
+          && data.productId is string && data.productId.size() > 0
+          && data.rating is number && data.rating >= 1 && data.rating <= 5
+          && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+          && data.comment is string && data.comment.size() > 0 && data.comment.size() <= 5000
+          && data.status in ['pending', 'approved', 'rejected']
+          && data.createdAt == request.time;
+      }
+    }
+
+    // --- Product Videos ---
+    match /productVideos/{videoId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Courier Partners ---
+    match /courierPartners/{partnerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Notifications ---
+    match /notifications/{notificationId} {
+      allow create: if isAdmin() && isValidNotification(incoming());
+      allow list, get: if isSignedIn() && (
+        isAdmin() || 
+        resource.data.targetTier == 0 || 
+        resource.data.targetUid == request.auth.uid ||
+        (resource.data.get('targetTier', -1) != -1 && resource.data.targetTier == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('loyaltyTier', 0))
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        (resource.data.targetUid == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['isRead']))
+      );
+      allow delete: if isAdmin();
+
+      function isValidNotification(data) {
+        return data.keys().hasAll(['title', 'message', 'type', 'createdAt'])
+          && data.title is string && data.title.size() > 0
+          && data.message is string && data.message.size() > 0
+          && data.type in ['broadcast', 'tier_reward', 'system']
+          && data.createdAt == request.time;
+      }
+    }
+
+    // --- Users & Loyalty ---
+    match /users/{userId} {
+      allow get: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      allow update: if isAdmin() || (
+        isSignedIn() && request.auth.uid == userId && (
+          // Action: Claim Status
+          (incoming().loyaltyStatus == 'pending' && existing().loyaltyStatus == 'none' && 
+           incoming().diff(existing()).affectedKeys().hasOnly(['loyaltyStatus'])) ||
+          // Action: Update Profile Info (displayName)
+          (incoming().diff(existing()).affectedKeys().hasOnly(['displayName']) && 
+           (incoming().get('displayName', null) == null || (incoming().displayName is string && incoming().displayName.size() <= 200)))
+        )
+      );
+
+      function isValidUser(data) {
+        return data.get('uid', '') == userId
+          && data.get('email', '') is string
+          && (request.method == 'create' ? data.get('createdAt', 0) == request.time : true);
+      }
+    }
+
+    // 0. Global Safety Net (Moved to bottom)
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

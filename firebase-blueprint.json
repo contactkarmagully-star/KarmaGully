@@ -11,6 +11,10 @@
         "description": { "type": "string" },
         "imageUrl": { "type": "string" },
         "category": { "type": "string" },
+        "categories": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "isCOD": { "type": "boolean" },
         "stock": { "type": "number" },
         "featured": { "type": "boolean" },
@@ -77,7 +81,45 @@
             "endTime": { "type": "string" },
             "discountText": { "type": "string" }
           }
+        },
+        "loyalty": {
+          "type": "object",
+          "properties": {
+            "isCodVerificationEnabled": { "type": "boolean" },
+            "codVerificationAmount": { "type": "number" },
+            "autoApproveTrustedBuyer": { "type": "boolean" },
+            "badgesEnabled": { "type": "boolean" },
+            "badgeNames": {
+              "type": "object",
+              "properties": {
+                "trusted": { "type": "string" },
+                "collector": { "type": "string" },
+                "elite": { "type": "string" }
+              }
+            }
+          }
         }
+      }
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Customer profile with loyalty data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isTrustedBuyer": { "type": "boolean" },
+        "loyaltyStatus": { "type": "string", "enum": ["none", "pending", "approved", "rejected"] },
+        "trustStats": {
+          "type": "object",
+          "properties": {
+            "deliveredCodOrders": { "type": "number" },
+            "successfulPrepaidOrders": { "type": "number" }
+          }
+        },
+        "badge": { "type": "string" },
+        "createdAt": { "type": "number" }
       }
     },
     "Page": {
@@ -100,6 +142,136 @@
         "updatedAt": { "type": "number" }
       },
       "required": ["title", "slug"]
+    },
+    "Ticket": {
+      "title": "Support Ticket",
+      "description": "A customer support request",
+      "type": "object",
+      "properties": {
+        "ticketId": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "telegramChatId": { "type": "string" },
+        "category": { "type": "string" },
+        "message": { "type": "string" },
+        "linkedOrderId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "closed"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "source": { "type": "string", "enum": ["telegram", "website"] }
+      },
+      "required": ["ticketId", "username", "category", "message", "status", "source"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "imageUrl"]
+    },
+    "SupportMessage": {
+      "title": "Support Message",
+      "description": "A message within a support ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderType": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["text", "senderId", "senderType", "createdAt"]
+    },
+    "BlogPost": {
+      "title": "Blog Post",
+      "description": "An AI-generated or manual blog post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "seoKeywords": { "type": "array", "items": { "type": "string" } },
+        "metaDescription": { "type": "string" },
+        "schemaMarkup": { "type": "object" },
+        "faq": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "answer": { "type": "string" }
+            }
+          }
+        },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "isAiGenerated": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "slug", "content", "status"]
+    },
+    "BlogSettings": {
+      "title": "Blog Settings",
+      "description": "Automation settings for AI blogging",
+      "type": "object",
+      "properties": {
+        "isAutoEnabled": { "type": "boolean" },
+        "intervalDays": { "type": "number" },
+        "lastPostAt": { "type": "number" },
+        "targetTopics": { "type": "array", "items": { "type": "string" } },
+        "promptStyle": { "type": "string" }
+      }
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Product review from customer",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "rating": { "type": "number" },
+        "name": { "type": "string" },
+        "comment": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["productId", "rating", "name", "comment", "status", "createdAt"]
+    },
+    "ProductVideo": {
+      "title": "Product Video",
+      "description": "Reels-style product interaction video",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["productId", "videoUrl", "order", "createdAt"]
+    },
+    "CourierPartner": {
+      "title": "Courier Partner",
+      "description": "A logistics/courier partner with logo",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "logoUrl", "isActive"]
     }
   },
   "firestore": {
@@ -107,9 +279,25 @@
       "schema": "Product",
       "description": "Collection of metal posters"
     },
+    "/blogs/{blogId}": {
+      "schema": "BlogPost",
+      "description": "Blog posts for SEO and marketing"
+    },
+    "/blogSettings/{id}": {
+      "schema": "BlogSettings",
+      "description": "Automation and AI config for blogs"
+    },
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "Store orders"
+    },
+    "/tickets/{ticketId}": {
+      "schema": "Ticket",
+      "description": "Support tickets"
+    },
+    "/tickets/{ticketId}/messages/{messageId}": {
+      "schema": "SupportMessage",
+      "description": "Real-time chat messages for a ticket"
     },
     "/admins/{adminId}": {
       "schema": "Admin",
@@ -119,13 +307,33 @@
       "schema": "Coupon",
       "description": "Discount coupons"
     },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories for navigation"
+    },
     "/settings/{id}": {
       "schema": "Settings",
       "description": "Global application settings"
     },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Customer profiles and loyalty data"
+    },
     "/pages/{slug}": {
       "schema": "Page",
       "description": "Custom dynamic pages"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Customer product reviews"
+    },
+    "/productVideos/{videoId}": {
+      "schema": "ProductVideo",
+      "description": "Short product demonstration videos"
+    },
+    "/courierPartners/{partnerId}": {
+      "schema": "CourierPartner",
+      "description": "Registered courier partners and their logos"
     }
   }
 }

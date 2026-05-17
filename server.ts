@@ -6,17 +6,29 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import { Resend } from "resend";
 import axios from "axios";
-import cors from "cors";
+import admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
+import fs from "fs";
+import { getFirebaseAdmin } from "./src/lib/firebaseAdmin.js";
+import { initBot, sendBotMessage } from "./src/services/telegramBot.js";
 
 dotenv.config();
 
+// Initialize Firebase Admin and get DB
+const firebaseAdmin = getFirebaseAdmin();
+if (!firebaseAdmin) {
+  throw new Error("Failed to initialize Firebase Admin");
+}
+const db = firebaseAdmin.db;
+
 async function startServer() {
   const app = express();
-const PORT = process.env.PORT || 3000;
+  const PORT = 3000;
+
+  // Initialize Telegram Bot in background
+  initBot().catch(err => console.error("Bot init failed:", err));
+
   app.use(express.json());
-  app.use(cors({
-  origin: "*"
-}));
 
   // Resend Initialization
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -30,7 +42,165 @@ const PORT = process.env.PORT || 3000;
     key_secret: razorpayKeySecret,
   }) : null;
 
+  // --- SEO Routes ---
+
+  const getBaseUrl = async (req: any) => {
+    try {
+      const settingsDoc = await db.collection("settings").doc("main").get();
+      if (settingsDoc.exists) {
+        const settings = settingsDoc.data();
+        if (settings?.primaryDomain) {
+          // Remove trailing slash if exists
+          return settings.primaryDomain.replace(/\/$/, "");
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch settings for baseUrl:", e);
+    }
+    
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'yourdomain.com';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    return `${protocol}://${host}`;
+  };
+
+  app.get("/robots.txt", async (req, res) => {
+    const baseUrl = await getBaseUrl(req);
+    const robots = `User-agent: *\nAllow: /\n\nSitemap: ${baseUrl}/sitemap.xml`;
+    res.header("Content-Type", "text/plain");
+    res.status(200).send(robots);
+  });
+
+  app.get("/sitemap.xml", async (req, res) => {
+    const baseUrl = await getBaseUrl(req);
+    
+    try {
+      // Safely fetch data with individual catch blocks to prevent total failure
+      const [productsSnap, categoriesSnap, blogsSnap] = await Promise.all([
+        db.collection("products").limit(100).get().catch(() => ({ docs: [] })),
+        db.collection("categories").limit(50).get().catch(() => ({ docs: [] })),
+        db.collection("blogs").where("status", "==", "published").limit(50).get().catch(() => ({ docs: [] }))
+      ]);
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+      
+      // Static Core Pages
+      const staticPaths = ["/", "/shop", "/blog", "/support"];
+      staticPaths.forEach(path => {
+        xml += `  <url>\n    <loc>${baseUrl}${path}</loc>\n  </url>\n`;
+      });
+
+      // Dynamic Products
+      (productsSnap as any).docs.forEach((doc: any) => {
+        xml += `  <url>\n    <loc>${baseUrl}/product/${doc.id}</loc>\n  </url>\n`;
+      });
+
+      // Dynamic Categories
+      (categoriesSnap as any).docs.forEach((doc: any) => {
+        xml += `  <url>\n    <loc>${baseUrl}/shop?category=${doc.id}</loc>\n  </url>\n`;
+      });
+
+      // Dynamic Blog Posts
+      (blogsSnap as any).docs.forEach((doc: any) => {
+        const blog = doc.data();
+        const slug = blog.slug || doc.id;
+        xml += `  <url>\n    <loc>${baseUrl}/blog/${slug}</loc>\n  </url>\n`;
+      });
+
+      xml += `</urlset>`;
+      
+      res.header("Content-Type", "application/xml");
+      res.status(200).send(xml);
+    } catch (err) {
+      console.error("Sitemap generation error:", err);
+      // Fallback to minimal valid sitemap
+      const fallbackXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${baseUrl}/</loc>\n  </url>\n</urlset>`;
+      res.header("Content-Type", "application/xml");
+      res.status(200).send(fallbackXml);
+    }
+  });
+
+  app.get("/debug-sitemap", async (req, res) => {
+    const host = req.headers.host || 'yourdomain.com';
+    const baseUrl = `https://${host}`;
+    
+    try {
+      const [productsSnap, categoriesSnap, blogsSnap] = await Promise.all([
+        db.collection("products").limit(100).get().catch(() => ({ docs: [] })),
+        db.collection("categories").limit(50).get().catch(() => ({ docs: [] })),
+        db.collection("blogs").where("status", "==", "published").limit(50).get().catch(() => ({ docs: [] }))
+      ]);
+
+      const urls: string[] = ["/", "/shop", "/blog", "/support"];
+      
+      (productsSnap as any).docs.forEach((doc: any) => {
+        urls.push(`/product/${doc.id}`);
+      });
+
+      (categoriesSnap as any).docs.forEach((doc: any) => {
+        urls.push(`/shop?category=${doc.id}`);
+      });
+
+      (blogsSnap as any).docs.forEach((doc: any) => {
+        const blog = doc.data();
+        const slug = blog.slug || doc.id;
+        urls.push(`/blog/${slug}`);
+      });
+
+      res.json({
+        domain: baseUrl,
+        products: (productsSnap as any).docs.length,
+        categories: (categoriesSnap as any).docs.length,
+        blogs: (blogsSnap as any).docs.length,
+        totalUrls: urls.length,
+        urls: urls.map(u => `${baseUrl}${u}`)
+      });
+    } catch (err) {
+      res.status(500).json({
+        error: "Debug failed",
+        message: err instanceof Error ? err.message : String(err)
+      });
+    }
+  });
+
   // --- API Routes ---
+
+  app.post("/api/notify-admin", async (req, res) => {
+    const { type, ticketId, username, category, message, linkedOrderId, text } = req.body;
+    const adminId = process.env.ADMIN_TELEGRAM_ID;
+
+    if (!adminId) return res.status(500).json({ error: "Admin Telegram ID not set" });
+
+    try {
+      if (type === 'new_ticket') {
+        const adminMsg = `
+🎫 <b>NEW TICKET: ${ticketId}</b> (Web)
+👤 <b>User:</b> ${username}
+📂 <b>Category:</b> ${category}
+💬 <b>Message:</b> ${message}
+🔗 <b>Order ID:</b> ${linkedOrderId || 'None'}
+
+/accept_${ticketId} | /reject_${ticketId}
+        `.trim();
+        sendBotMessage(adminId, adminMsg);
+      } else if (type === 'new_message') {
+        const adminMsg = `📩 <b>Web Reply from ${username} (${ticketId}):</b>\n${text}`;
+        sendBotMessage(adminId, adminMsg);
+      }
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to notify admin" });
+    }
+  });
+
+  app.post("/api/notify-user-telegram", async (req, res) => {
+    const { chatId, text } = req.body;
+    try {
+      sendBotMessage(chatId, text);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to notify user" });
+    }
+  });
 
   app.post("/api/notifications/order", async (req, res) => {
     const { order, customerEmail, customerName } = req.body;
@@ -50,9 +220,15 @@ const PORT = process.env.PORT || 3000;
                 <p>Your order <strong>${order.id}</strong> has been received and is being processed by our manufacturing unit.</p>
                 <hr />
                 <h3>Order Details:</h3>
-                <p>Total Amount: ₹${order.totalAmount}</p>
-                <p>Shipping Address: ${order.customerInfo.address}, ${order.customerInfo.city}</p>
-                <p>Estimated Delivery: 4-7 Days</p>
+                <p>Order Total: ₹${order.totalAmount}</p>
+                ${order.paymentType === 'COD' && order.advancePaid > 0 ? `
+                  <p>Advance Paid (Verification): ₹${order.advancePaid}</p>
+                  <p style="font-size: 1.1em; color: #9333ea;"><strong>Balance to Pay at Door: ₹${order.totalAmount - order.advancePaid}</strong></p>
+                ` : `
+                  <p>Payment Status: ${order.paymentStatus === 'Success' ? 'PAID' : 'Pending'}</p>
+                `}
+                <p>Shipping Address: ${order.customerInfo.address || order.address.fullAddress}, ${order.customerInfo.city || order.address.city}</p>
+                <p>Estimated Delivery: 7-10 Days</p>
                 <hr />
                 <p>Elevate your aesthetic,<br/>Team KarmaGully</p>
               </div>
@@ -82,6 +258,22 @@ const PORT = process.env.PORT || 3000;
           const discountAmount = subtotal - order.totalAmount;
           const discountLine = discountAmount > 0.1 ? `\n<b>🏷️ Discount Applied:</b> -₹${discountAmount.toFixed(2)}` : '';
 
+          const advance = order.advancePaid || 0;
+          const balance = order.totalAmount - advance;
+          
+          let paymentDetail = '';
+          if (order.paymentType === 'Online') {
+            paymentDetail = `Online (Fully Paid: ₹${order.totalAmount})`;
+          } else if (order.isCodVerified) {
+            if (advance > 0) {
+              paymentDetail = `COD (Verified)\n   └ Paid: ₹${advance}\n   └ Balance at Door: <b>₹${balance}</b>`;
+            } else {
+              paymentDetail = `COD (Loyalty Unlock - No Fee)\n   └ Balance at Door: <b>₹${order.totalAmount}</b>`;
+            }
+          } else {
+            paymentDetail = `COD (Pending: ₹${order.totalAmount})`;
+          }
+
           const message = `
 <b>🛍️ ORDER: ${order.items[0].name.toUpperCase()}</b> ${order.items.length > 1 ? `(+${order.items.length - 1} more)` : ''}
 
@@ -89,10 +281,11 @@ const PORT = process.env.PORT || 3000;
 ${itemsList}${discountLine}
 
 <b>🆔 Order ID:</b> <code>${order.id}</code>
+<b>👤 Customer ID:</b> <code>${order.profileId || order.userId || 'Guest'}</code>
 <b>👤 Customer:</b> ${customerName}
 <b>📧 Email:</b> ${order.customerInfo.email}
-<b>💰 Pay Amount:</b> ₹${order.totalAmount}
-<b>💳 Payment:</b> ${order.paymentType} (${order.paymentStatus})
+<b>💰 Total Amount:</b> ₹${order.totalAmount}
+<b>💳 Payment:</b> ${paymentDetail}
 
 <b>🏠 Address:</b>
 ${fullAddressText}
@@ -145,6 +338,26 @@ ${fullAddressText}
     }
   });
 
+  app.get("/api/cloudinary/usage", async (req, res) => {
+    const cloudinaryUrl = process.env.CLOUDINARY_URL;
+    if (!cloudinaryUrl) {
+      return res.status(400).json({ error: "CLOUDINARY_URL not set in environment." });
+    }
+
+    try {
+      const { v2: cloudinary } = await import("cloudinary");
+      cloudinary.config({
+        cloudinary_url: cloudinaryUrl,
+      });
+
+      const result = await cloudinary.api.usage();
+      res.json(result);
+    } catch (err: any) {
+      console.error("Cloudinary usage fetch failed:", err);
+      res.status(500).json({ error: err.message || "Failed to fetch Cloudinary usage." });
+    }
+  });
+
   app.post("/api/razorpay/order", async (req, res) => {
     if (!razorpay) {
       console.error("Razorpay Error: Keys are missing in environment variables.");
@@ -184,6 +397,55 @@ ${fullAddressText}
     } else {
       res.status(400).json({ status: "failure" });
     }
+  });
+
+  app.post("/api/razorpay/webhook", async (req, res) => {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    
+    if (!webhookSecret) {
+      console.warn("Razorpay Webhook: Secret not configured. Skipping verification.");
+      return res.status(200).json({ status: "ok" }); // Still return 200 to acknowledge
+    }
+
+    const signature = req.headers["x-razorpay-signature"];
+    const expectedSignature = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(JSON.stringify(req.body))
+      .digest("hex");
+
+    if (signature !== expectedSignature) {
+      console.error("Razorpay Webhook: Invalid Signature");
+      return res.status(400).send("Invalid signature");
+    }
+
+    const event = req.body.event;
+    console.log(`Razorpay Webhook Event: ${event}`, req.body.payload);
+
+    try {
+      // Handle payment events
+      if (event === "payment.captured" || event === "order.paid") {
+        const payment = req.body.payload.payment?.entity || req.body.payload.order?.entity;
+        const orderId = payment.order_id || payment.id;
+        
+        // Log webhook receipt in Firestore for auditing
+        await db.collection("payment_logs").add({
+          event,
+          razorpayOrderId: orderId,
+          razorpayPaymentId: payment.id,
+          amount: payment.amount / 100,
+          currency: payment.currency,
+          status: payment.status,
+          receivedAt: FieldValue.serverTimestamp(),
+          payload: req.body.payload
+        });
+        
+        console.log(`Successfully logged Razorpay event: ${event} for order: ${orderId}`);
+      }
+    } catch (err) {
+      console.error("Razorpay Webhook: Firestore logging failed:", err);
+    }
+
+    res.status(200).json({ status: "ok" });
   });
 
   // --- Vite Middleware / Static Assets ---
