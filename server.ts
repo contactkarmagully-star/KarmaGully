@@ -17,13 +17,15 @@ async function startServer() {
   app.use(express.json());
 
   app.use(cors({
-    origin: [
-      "https://karmagully.studio",
-      "https://karmagully-website.onrender.com"
-    ],
-    methods: ["GET", "POST"],
-    credentials: true
-  }));
+  origin: [
+    "https://karmagully.studio",
+    "https://karmagully-website.onrender.com",
+    'https://www.karmagully.studio',
+    "https://karmagully-website.vercel.app"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 
   // Resend Initialization
   const resend = process.env.RESEND_API_KEY
