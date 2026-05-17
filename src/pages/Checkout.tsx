@@ -199,7 +199,7 @@ export default function Checkout() {
           ? (settings?.loyalty?.codVerificationAmount || 99) 
           : discountedTotal;
 
-        const response = await fetch('/api/razorpay/order', {
+        const response = await fetch('https://karmagully-backend.onrender.com/api/razorpay/order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: paymentAmount, receipt: `order_${Date.now()}` })
@@ -220,7 +220,7 @@ export default function Checkout() {
           order_id: data.id,
           handler: async (response: any) => {
             try {
-              const verifyRes = await fetch('/api/razorpay/verify', {
+              const verifyRes = await fetch('https://karmagully-backend.onrender.com/api/razorpay/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(response)
