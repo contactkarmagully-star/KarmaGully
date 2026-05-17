@@ -64,7 +64,7 @@ export async function createWebsiteTicket(data: Omit<SupportTicket, 'ticketId' |
 
   // Call API to notify admin via Telegram
   try {
-    await fetch('/api/notify-admin', {
+    await fetch('https://karmagully-website.onrender.com/api/notify-admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -113,7 +113,7 @@ export async function sendMessage(ticketId: string, text: string, senderId: stri
   // If it's a user message, notify admin via Telegram
   if (senderType === 'user') {
     try {
-      await fetch('/api/notify-admin', {
+      await fetch('https://karmagully-website.onrender.com/api/notify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +132,7 @@ export async function sendMessage(ticketId: string, text: string, senderId: stri
       if (tSnap.exists()) {
           const t = tSnap.data() as SupportTicket;
           if (t.source === 'telegram' && t.telegramChatId) {
-             await fetch('/api/notify-user-telegram', {
+             await fetch('https://karmagully-website.onrender.com/api/notify-user-telegram', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
