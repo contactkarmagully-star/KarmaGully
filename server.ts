@@ -14,8 +14,13 @@ async function startServer() {
   const app = express();
 const PORT = process.env.PORT || 3000;
   app.use(express.json());
-  app.use(cors({
-  origin: "*"
+ app.use(cors({
+  origin: [
+    "https://karmagully.studio",
+    "https://karmagully-website.onrender.com"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
 }));
 
   // Resend Initialization
