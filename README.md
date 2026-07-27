@@ -7,11 +7,6 @@
 </div>
 
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=280&color=0:0f0c29,30:302b63,60:7c3aed,100:c026d3&text=KarmaGully&fontSize=62&fontColor=ffffff&animation=twinkling&fontAlignY=38&desc=Premium%20Anime%20Metal%20Posters&descAlignY=58"/>
-</p>
-
-
 <div align="center">
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
