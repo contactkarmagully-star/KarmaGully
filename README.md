@@ -16,6 +16,15 @@
 
 </div>
 
+<div align="center">
+
+[ Live Website](https://karmagully.studio) •
+[ Star Repository](https://github.com/contactkarmagully-star/KarmaGully) •
+[ Report Bug](https://github.com/contactkarmagully-star/KarmaGully/issues) •
+[ Request Feature](https://github.com/contactkarmagully-star/KarmaGully/issues)
+
+</div>
+
 # KarmaGully
 
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
