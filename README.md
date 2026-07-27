@@ -95,7 +95,7 @@ npm run dev
 -  Delivery Partner Tracking
 -  Telegram Order Notifications
 -  Scure Authentication
-- 📱 Fully Responsive Design
+-  Fully Responsive Design
 
 ---
 
