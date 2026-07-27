@@ -52,11 +52,18 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 
 ---
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake-dark.svg" />
+</p>
+
+---
  Homepage
 
 <p align="center">
   <img src="./assets/gifs/homepage.gif" width="100%" alt="KarmaGully Homepage Demo">
 </p>
+
+---
 
 
 ##  Run Locally
