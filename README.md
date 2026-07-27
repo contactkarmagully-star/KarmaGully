@@ -51,11 +51,6 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 🌐 **Website:** https://karmagully.studio
 
 ---
-<p align="center">
-<img src="https://github-profile-trophy.vercel.app/?username=contactkarmagully-star&theme=tokyonight&no-frame=true&row=1&column=7"/>
-</p>
-
----
  Homepage
 
 <p align="center">
