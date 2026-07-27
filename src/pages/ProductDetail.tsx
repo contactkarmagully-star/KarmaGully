@@ -300,48 +300,49 @@ export default function ProductDetail() {
       }
     }
 
-    const totalLinesCount = paragraphs.length + features.length;
-    const isOverLimit = totalLinesCount > 7;
-
-    let paragraphsToRender = paragraphs;
-    let featuresToRender = features;
-
-    if (isOverLimit && !isDescExpanded) {
-      if (paragraphs.length >= 7) {
-        paragraphsToRender = paragraphs.slice(0, 7);
-        featuresToRender = [];
-      } else {
-        paragraphsToRender = paragraphs;
-        featuresToRender = features.slice(0, 7 - paragraphs.length);
-      }
-    }
+    // Estimate total visual lines on a medium screen (approx. 60 chars per line)
+    const estimatedVisualLines = rawLines.reduce((acc, line) => {
+      const wrapCount = Math.ceil(line.length / 60) || 1;
+      return acc + wrapCount;
+    }, 0);
+    const isOverLimit = estimatedVisualLines > 7;
 
     return (
       <div className="space-y-6">
-        {/* Intro Paragraphs */}
-        {paragraphsToRender.length > 0 && (
-          <div className="space-y-4">
-            {paragraphsToRender.map((para, i) => (
-              <p key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium">
-                {para}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {/* Features List */}
-        {featuresToRender.length > 0 && (
-          <div className="space-y-2 pt-4 border-t border-white/5">
-            <ul className="space-y-2">
-              {featuresToRender.map((feat, i) => (
-                <li key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
-                  <span>{feat}</span>
-                </li>
+        <div 
+          className="space-y-6"
+          style={!isDescExpanded && isOverLimit ? {
+            display: '-webkit-box',
+            WebkitLineClamp: 7,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          } : undefined}
+        >
+          {/* Intro Paragraphs */}
+          {paragraphs.length > 0 && (
+            <div className="space-y-4">
+              {paragraphs.map((para, i) => (
+                <p key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium">
+                  {para}
+                </p>
               ))}
-            </ul>
-          </div>
-        )}
+            </div>
+          )}
+
+          {/* Features List */}
+          {features.length > 0 && (
+            <div className="space-y-2 pt-4 border-t border-white/5">
+              <ul className="space-y-2">
+                {features.map((feat, i) => (
+                  <li key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
 
         {/* Read More Toggle */}
         {isOverLimit && (
