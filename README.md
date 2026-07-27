@@ -22,6 +22,7 @@
 [ Star Repository](https://github.com/contactkarmagully-star/KarmaGully) •
 [ Report Bug](https://github.com/contactkarmagully-star/KarmaGully/issues) •
 [ Request Feature](https://github.com/contactkarmagully-star/KarmaGully/issues)
+![Visitors](https://komarev.com/ghpvc/?username=contactkarmagully-star&repo=KarmaGully&style=for-the-badge)
 
 </div>
 
@@ -107,7 +108,7 @@ npm run dev
 -  Customer Support Ticket System
 -  Delivery Partner Tracking
 -  Telegram Order Notifications
--  Scure Authentication
+-  Secure Authentication
 -  Fully Responsive Design
 
 ---
