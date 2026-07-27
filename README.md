@@ -51,20 +51,9 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 🌐 **Website:** https://karmagully.studio
 
 ---
-
-<div align="center">
-
-# 🐍 Contribution Activity
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:0f0c29,50:6d28d9,100:a855f7&height=2&section=header"/>
-
-<img src="https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake-dark.svg" width="100%" />
-
-<br>
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=100:a855f7,50:6d28d9,0:0f0c29&height=2&section=footer"/>
-
-</div>
+<p align="center">
+<img src="https://github-profile-trophy.vercel.app/?username=contactkarmagully-star&theme=tokyonight&no-frame=true&row=1&column=7"/>
+</p>
 
 ---
  Homepage
