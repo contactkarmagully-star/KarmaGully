@@ -39,13 +39,6 @@
 
 # KarmaGully
 
-
-<img src="./assets/gifs/homepage.gif" width="800">
-
-
-
-
-
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
 
 Modern e-commerce platform featuring AI-powered blog generation, SEO automation, loyalty rewards, customer support ticketing, delivery tracking, and a powerful admin dashboard.
@@ -53,6 +46,13 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 🌐 **Website:** https://karmagully.studio
 
 ---
+
+ Homepage
+
+<p align="center">
+  <img src="./assets/gifs/homepage.gif" width="900" alt="KarmaGully Homepage Demo">
+</p>
+
 
 ##  Run Locally
 
