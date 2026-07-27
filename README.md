@@ -118,6 +118,14 @@ https://karmagully.studio
 
 ---
 
+<div align="center">
+
+Made with ❤️ using React, TypeScript, Node.js & Firebase.
+
+If you like this project, consider giving it a ⭐
+
+</div>
+
 ## 📄 License
 
 This project is licensed under the MIT License.
