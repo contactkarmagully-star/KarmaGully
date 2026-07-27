@@ -152,3 +152,7 @@ Made with ❤️ using React, TypeScript, Node.js & Firebase.
 If you like this project, consider giving it a Star
 
 </div>
+<p align="center">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:09090B,25:1E1B4B,50:6D28D9,75:8B5CF6,100:C026D3&animation=twinkling"/>
+</p>
+
