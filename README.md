@@ -61,7 +61,7 @@ npm run dev
 
 ---
 
-## 🛠 Built With
+##  Built With
 
 -  React
 -  TypeScript
