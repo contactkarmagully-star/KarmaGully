@@ -22,13 +22,14 @@
 [ Star Repository](https://github.com/contactkarmagully-star/KarmaGully) •
 [ Report Bug](https://github.com/contactkarmagully-star/KarmaGully/issues) •
 [ Request Feature](https://github.com/contactkarmagully-star/KarmaGully/issues)
-![Visitors](https://komarev.com/ghpvc/?username=contactkarmagully-star&repo=KarmaGully&style=for-the-badge)
+
 
 </div>
 
 ![Stars](https://img.shields.io/github/stars/contactkarmagully-star/KarmaGully?style=for-the-badge)
 ![Forks](https://img.shields.io/github/forks/contactkarmagully-star/KarmaGully?style=for-the-badge)
 ![Issues](https://img.shields.io/github/issues/contactkarmagully-star/KarmaGully?style=for-the-badge)
+![Visitors](https://komarev.com/ghpvc/?username=contactkarmagully-star&repo=KarmaGully&style=for-the-badge)
 
 # KarmaGully
 
