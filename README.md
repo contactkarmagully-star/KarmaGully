@@ -50,7 +50,7 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
  Homepage
 
 <p align="center">
-  <img src="./assets/gifs/homepage.gif" width="900" alt="KarmaGully Homepage Demo">
+  <img src="./assets/gifs/homepage.gif" width="100%" alt="KarmaGully Homepage Demo">
 </p>
 
 
