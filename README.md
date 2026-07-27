@@ -25,6 +25,10 @@
 
 </div>
 
+![Stars](https://img.shields.io/github/stars/contactkarmagully-star/KarmaGully?style=for-the-badge)
+![Forks](https://img.shields.io/github/forks/contactkarmagully-star/KarmaGully?style=for-the-badge)
+![Issues](https://img.shields.io/github/issues/contactkarmagully-star/KarmaGully?style=for-the-badge)
+
 # KarmaGully
 
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
