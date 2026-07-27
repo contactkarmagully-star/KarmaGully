@@ -31,6 +31,9 @@
 ![Issues](https://img.shields.io/github/issues/contactkarmagully-star/KarmaGully?style=for-the-badge)
 ![Visitors](https://komarev.com/ghpvc/?username=contactkarmagully-star&repo=KarmaGully&style=for-the-badge)
 
+![Repo Size](https://img.shields.io/github/repo-size/contactkarmagully-star/KarmaGully?style=for-the-badge)
+![Code Size](https://img.shields.io/github/languages/code-size/contactkarmagully-star/KarmaGully?style=for-the-badge)
+
 # KarmaGully
 
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
