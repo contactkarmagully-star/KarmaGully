@@ -616,15 +616,17 @@ export default function ProductDetail() {
       )}
 
       {/* Collection Navigation */}
-      <section className="mt-32 p-12 md:p-24 bg-white/5 border border-white/5 rounded-[4rem] text-center space-y-12 overflow-hidden relative group">
-        <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-        <div className="relative space-y-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.6em] text-neon-blue italic">Related Collection</p>
-          <h2 className="text-5xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">Explore more from <br/> this <span className="text-gradient leading-normal">{product.category}</span></h2>
-          <div className="pt-4">
+      <section className="mt-20 max-w-4xl mx-auto p-8 md:p-14 bg-gradient-to-b from-white/[0.03] to-white/[0.01] border border-white/5 rounded-3xl text-center space-y-8 overflow-hidden relative group shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        <div className="relative space-y-5">
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-neon-blue italic">Related Collection</p>
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black italic uppercase tracking-tight leading-none">
+            Explore more from <br className="hidden sm:inline" /> this <span className="text-gradient leading-normal">{product.category}</span>
+          </h2>
+          <div className="pt-2">
              <button 
                onClick={() => navigate(`/shop?category=${product.category}`)}
-               className="px-12 py-5 bg-white text-dark-bg font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-purple hover:text-white transition-all shadow-2xl active:scale-95"
+               className="px-8 py-3.5 bg-white text-dark-bg font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-neon-purple hover:text-white transition-all duration-300 shadow-lg active:scale-95"
              >
                View Collection
              </button>
