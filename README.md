@@ -16,7 +16,7 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 
 ---
 
-## 🚀 Run Locally
+##  Run Locally
 
 ### Prerequisites
 
@@ -37,7 +37,7 @@ npm install
 
 ---
 
-## ⚙️ Environment Setup
+##  Environment Setup
 
 This project uses environment variables for Firebase, Cloudinary, Google AI, Razorpay, and Telegram integration.
 
@@ -53,7 +53,7 @@ Open `.env.local` and replace the placeholder values with your own credentials.
 
 ---
 
-## ▶️ Start the Development Server
+##  Start the Development Server
 
 ```bash
 npm run dev
@@ -63,28 +63,28 @@ npm run dev
 
 ## 🛠 Built With
 
-- ⚛️ React
-- 🔷 TypeScript
-- 🟢 Node.js
-- 🚀 Express.js
-- 🔥 Firebase
-- ☁️ Cloudinary
-- 💳 Razorpay
-- 🤖 Google AI (Gemini)
+-  React
+-  TypeScript
+-  Node.js
+-  Express.js
+-  Firebase
+-  Cloudinary
+-  Razorpay
+-  Google AI (Gemini)
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-- 🛍️ Modern Anime E-Commerce Store
-- 🤖 AI-Powered SEO Blog Generator
-- 📦 Product & Order Management
-- 🎟️ Coupon Management
-- 👑 Loyalty & Rewards System
-- 🎫 Customer Support Ticket System
-- 🚚 Delivery Partner Tracking
-- 📲 Telegram Order Notifications
-- 🔐 Secure Authentication
+-  Modern Anime E-Commerce Store
+-  AI-Powered SEO Blog Generator
+-  Product & Order Management
+-  Coupon Management
+-  Loyalty & Rewards System
+-  Customer Support Ticket System
+-  Delivery Partner Tracking
+-  Telegram Order Notifications
+-  Scure Authentication
 - 📱 Fully Responsive Design
 
 ---
