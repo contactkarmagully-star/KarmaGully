@@ -217,7 +217,8 @@ export default function AdminDashboard() {
 
       // Bootstrap admin record if current user is the root admin but not in collection
       const user = auth.currentUser;
-      if (user && user.email === 'c.b.sharma321@gmail.com' && !adminsData.find((a: any) => a.id === user.uid)) {
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+      if (user && user.email && adminEmail && user.email.toLowerCase() === adminEmail.toLowerCase() && !adminsData.find((a: any) => a.id === user.uid)) {
         await addAdmin(user.uid, user.email);
       }
 
@@ -1808,7 +1809,7 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
                 type="button"
                 onClick={async () => {
                   try {
-                    const res = await fetch('https://karmagully-website.onrender.com/api/test-telegram');
+                    const res = await fetch('/api/test-telegram');
                     const data = await res.json();
                     if (data.success) {
                       alert("✅ Test message sent!");
@@ -2816,7 +2817,7 @@ function OverviewTab({ products, orders, onSeed, seeding, onTabChange }: { produ
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-neon-blue mb-1">Authenticated Session</p>
                   <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest leading-relaxed">
-                    You are signed in as <span className="text-white">c.b.sharma321@gmail.com</span>. 
+                    You are signed in as <span className="text-white">{auth.currentUser?.email || 'Admin'}</span>. 
                     All administrative actions are logged and encrypted.
                   </p>
                 </div>
@@ -3306,11 +3307,11 @@ function AdminsTab({ admins, onAdd, onRemove, currentUserEmail, deletingId }: { 
             </thead>
             <tbody className="text-sm font-medium">
                {/* Bootstrap Admin (Ghost item if not in DB) */}
-               {admins.every(a => a.email !== 'c.b.sharma321@gmail.com') && (
+               {import.meta.env.VITE_ADMIN_EMAIL && admins.every(a => a.email !== import.meta.env.VITE_ADMIN_EMAIL) && (
                 <tr className="border-t border-white/5 group bg-purple-500/5">
                   <td className="py-4">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold tracking-tight">c.b.sharma321@gmail.com</span>
+                      <span className="font-bold tracking-tight">{import.meta.env.VITE_ADMIN_EMAIL}</span>
                       <span className="px-2 py-0.5 bg-purple-500 text-white text-[8px] font-black rounded uppercase">System Root</span>
                     </div>
                   </td>
@@ -3325,7 +3326,7 @@ function AdminsTab({ admins, onAdd, onRemove, currentUserEmail, deletingId }: { 
                   </td>
                   <td className="py-4 text-white/20 font-mono text-[10px]">{admin.id}</td>
                   <td className="py-4 text-right">
-                    {admin.email !== currentUserEmail && admin.email !== 'c.b.sharma321@gmail.com' ? (
+                    {admin.email !== currentUserEmail && admin.email !== import.meta.env.VITE_ADMIN_EMAIL ? (
                       deletingId === admin.id ? (
                         <button className="px-4 py-2 bg-pink-500/10 text-pink-500 rounded-lg"><Clock className="w-3.5 h-3.5 animate-spin" /></button>
                       ) : confirmingId === admin.id ? (
@@ -3473,7 +3474,7 @@ function SupportTab() {
 
       // Notify user via Telegram if it's a telegram ticket
       if (activeTicket.source === 'telegram' && activeTicket.telegramChatId) {
-        await fetch('https://karmagully-website.onrender.com/api/notify-user-telegram', {
+        await fetch('/api/notify-user-telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3520,7 +3521,7 @@ function SupportTab() {
         if (status === 'closed') {
           notifyMsg += `\n\nThank you for reaching out! Use /start for any new issues.`;
         }
-        await fetch('https://karmagully-website.onrender.com/api/notify-user-telegram', {
+        await fetch('/api/notify-user-telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3797,7 +3798,7 @@ function HealthTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://karmagully-website.onrender.com/api/cloudinary/usage')
+    fetch('/api/cloudinary/usage')
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
