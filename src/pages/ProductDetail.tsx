@@ -229,6 +229,124 @@ export default function ProductDetail() {
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
     : 0;
 
+  const renderProductDescription = (desc: string) => {
+    if (!desc) return null;
+
+    // Split by newline first
+    let rawLines = desc.split('\n').map(l => l.trim()).filter(Boolean);
+    
+    // If we only have one line but it contains bullet symbols, let's split it by bullets
+    if (rawLines.length === 1 && (desc.includes('•') || desc.includes('✓'))) {
+      const char = desc.includes('•') ? '•' : '✓';
+      rawLines = desc.split(char).map(l => l.trim()).filter(Boolean);
+    }
+
+    const paragraphs: string[] = [];
+    const features: string[] = [];
+    let tags: string[] = [];
+    let currentSection: 'intro' | 'features' | 'tags' = 'intro';
+
+    for (const line of rawLines) {
+      const lowerLine = line.toLowerCase();
+
+      // Check for Tags section
+      if (lowerLine.startsWith('tags:') || lowerLine.startsWith('tags ')) {
+        currentSection = 'tags';
+        const tagContent = line.replace(/tags:?/i, '').trim();
+        tags = tagContent.split(',').map(t => t.trim()).filter(Boolean);
+        continue;
+      }
+
+      // Check for Features heading
+      if (
+        lowerLine === 'features' || 
+        lowerLine === 'features:' || 
+        lowerLine === 'key features:' || 
+        lowerLine === 'key features' ||
+        lowerLine === 'specifications' ||
+        lowerLine === 'specifications:'
+      ) {
+        currentSection = 'features';
+        continue;
+      }
+
+      // Check if line starts with bullet indicators
+      if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || line.startsWith('✓')) {
+        const cleanLine = line.replace(/^[•\-\*✓]\s*/, '').trim();
+        features.push(cleanLine);
+        continue;
+      }
+
+      // Smart check: if the line contains common feature keywords and is relatively short (< 60 chars)
+      const isFeatureKeyword = 
+        lowerLine.includes('construction') || 
+        lowerLine.includes('quality') || 
+        lowerLine.includes('resistant') || 
+        lowerLine.includes('finish') || 
+        lowerLine.includes('hang') || 
+        lowerLine.includes('durable') ||
+        lowerLine.includes('material') ||
+        lowerLine.includes('print') ||
+        lowerLine.includes('mounting') ||
+        lowerLine.includes('waterproof');
+
+      if (currentSection === 'features') {
+        features.push(line);
+      } else if (line.length < 60 && isFeatureKeyword) {
+        features.push(line);
+      } else {
+        paragraphs.push(line);
+      }
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Intro Paragraphs */}
+        {paragraphs.length > 0 && (
+          <div className="space-y-4">
+            {paragraphs.map((para, i) => (
+              <p key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium">
+                {para}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/* Features List */}
+        {features.length > 0 && (
+          <div className="space-y-2 pt-4 border-t border-white/5">
+            <ul className="space-y-2">
+              {features.map((feat, i) => (
+                <li key={i} className="text-white/60 text-sm md:text-base leading-relaxed font-medium flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                  <span>{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <div className="space-y-3 pt-4 border-t border-white/5">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 italic">Related Tags</h3>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, i) => (
+                <Link 
+                  key={i} 
+                  to={`/shop?q=${encodeURIComponent(tag)}`}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all duration-300"
+                >
+                  #{tag}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const isFullyClaimed = product.isLimitedDrop && settings?.features.limitedDrops && product.dropQuantity ? (product.soldCount || 0) >= product.dropQuantity : false;
   const isOutOfStock = product.stock <= 0 || isFullyClaimed;
 
@@ -341,7 +459,7 @@ export default function ProductDetail() {
                 <span className="text-white/20 ml-2">Series</span>
               </div>
               <div className="flex justify-between items-start gap-4">
-                <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-[0.9] flex-grow">{product.name}</h1>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tight leading-[1.05] flex-grow">{product.name}</h1>
                 {settings?.features.wishlist && (
                   <button 
                     onClick={() => toggleWishlist(product.id)}
@@ -387,9 +505,7 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <p className="text-white/40 text-lg leading-relaxed font-medium">
-              {product.description}
-            </p>
+            {renderProductDescription(product.description)}
           </div>
 
             {/* Variants Selection */}
