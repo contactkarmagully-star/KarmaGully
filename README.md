@@ -39,6 +39,12 @@
 
 # KarmaGully
 
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=800&size=34&duration=2600&pause=1200&color=8B5CF6&center=true&vCenter=true&width=1100&lines=✦+Premium+Anime+Metal+Posters;◈+AI-Powered+E-Commerce+Platform;⬢+Smart+SEO+%26+AI+Blog+Generator;◆+Built+with+React+•+TypeScript+•+Firebase;✧+Welcome+to+KarmaGully" alt="Typing SVG" />
+</p>
+
+
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
 
 Modern e-commerce platform featuring AI-powered blog generation, SEO automation, loyalty rewards, customer support ticketing, delivery tracking, and a powerful admin dashboard.
