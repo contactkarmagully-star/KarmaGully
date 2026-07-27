@@ -55,7 +55,10 @@ export async function removeAdmin(uid: string) {
 
 export async function isUserAdmin(uid: string, email: string): Promise<boolean> {
   // Bootstrap email check
-  if (email === 'c.b.sharma321@gmail.com') return true;
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+  if (adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase()) {
+    return true;
+  }
 
   try {
     const docRef = doc(db, COLLECTION_NAME, uid);
