@@ -37,13 +37,12 @@
 ![Issues](https://img.shields.io/github/issues/contactkarmagully-star/KarmaGully?style=for-the-badge)
 ![Visitors](https://komarev.com/ghpvc/?username=contactkarmagully-star&repo=KarmaGully&style=for-the-badge)
 
-# KarmaGully
-
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=800&size=34&duration=2600&pause=1200&color=8B5CF6&center=true&vCenter=true&width=1100&lines=✦+Premium+Anime+Metal+Posters;◈+AI-Powered+E-Commerce+Platform;⬢+Smart+SEO+%26+AI+Blog+Generator;◆+Built+with+React+•+TypeScript+•+Firebase;✧+Welcome+to+KarmaGully" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=800&size=36&duration=2400&pause=1400&color=7C3AED&center=true&vCenter=true&width=1200&lines=◆+PREMIUM+ANIME+METAL+POSTERS;✦+Crafted+for+True+Otaku+Setups;⬢+AI+Powered+E-Commerce+Experience;◈+React+•+TypeScript+•+Firebase+•+Node.js;💜+Welcome+to+KarmaGully" alt="Typing SVG" />
 </p>
 
+# KarmaGully
 
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
 
