@@ -16,6 +16,12 @@
 
 </div>
 
+<p align="center">
+
+<img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,firebase,cloudinary,vite,git,github,vscode" />
+
+</p>
+
 <div align="center">
 
 [ Live Website](https://karmagully.studio) •
@@ -44,12 +50,6 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 ##  Run Locally
 
 ### Prerequisites
-
-<p align="center">
-
-<img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,firebase,cloudinary,vite,git,github,vscode" />
-
-</p>
 
 - Node.js 20+
 - Firebase Project
