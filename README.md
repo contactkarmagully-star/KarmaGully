@@ -1,6 +1,6 @@
 <div align="center">
   <img
-    src="./assets/banner.png"
+    src="./banner.png"
     alt="KarmaGully Banner"
     width="100%"
   />
