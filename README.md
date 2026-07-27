@@ -18,7 +18,7 @@
 
 <p align="center">
 
-<img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,firebase,vite,git,github,vscode" />
+<img src="https://skillicons.dev/icons?i=react,ts,nodejs,express,firebase,vite,git,github,vscode,razorpay" />
 
 </p>
 
