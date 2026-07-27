@@ -6,6 +6,16 @@
   />
 </div>
 
+<div align="center">
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-5-000000?logo=express&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
+
+</div>
+
 # KarmaGully
 
 **AI-Powered E-Commerce Platform for Premium Anime Metal Posters**
