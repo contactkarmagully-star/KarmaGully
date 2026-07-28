@@ -52,7 +52,7 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 🌐 **Website:** https://karmagully.studio
 
 ---
-<h2 Homepage </h2>
+<h2>🏠 Homepage</h2>
 
 <p align="center">
   <img src="./assets/gifs/homepage.gif" width="100%" alt="KarmaGully Homepage Demo">
