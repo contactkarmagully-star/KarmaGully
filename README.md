@@ -66,7 +66,7 @@ Welcome to KarmaGully — a premium anime-inspired e-commerce platform featuring
   <img src="./assets/gifs/product-details.gif" width="100%" alt="Premium Product Details">
 </p>
 
-Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless add-to-cart experience.
+Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless secure drop experience.
 
 <h2> Secure Checkout</h2>
 
