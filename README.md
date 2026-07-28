@@ -69,7 +69,7 @@ Experience every detail before you buy—from high-resolution previews and multi
  Secure Checkout
 
 <p align="center">
-  <img src="./assets/gifs/checkout.gif" width="900" alt="Secure Checkout Experience">
+  <img src="./assets/gifs/checkout.gif" width="100%" alt="Secure Checkout Experience">
 </p>
 
 Fast, secure, and seamless checkout with multiple payment options, real-time order summary, and a smooth purchasing experience.
@@ -77,7 +77,7 @@ Fast, secure, and seamless checkout with multiple payment options, real-time ord
 AI Blog Generator
 
 <p align="center">
-  <img src="./assets/gifs/ai-blog-generator.gif" width="900" alt="AI Blog Generator Demo">
+  <img src="./assets/gifs/ai-blog-generator.gif" width="100%" alt="AI Blog Generator Demo">
 </p>
 
 Generate SEO-optimized blog posts in seconds with AI. Create titles, structured content, featured images, metadata, and publish-ready articles—all from a single prompt.
