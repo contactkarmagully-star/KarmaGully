@@ -61,7 +61,7 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
  Product Details
 
 <p align="center">
-  <img src="./assets/gifs/product-details.gif" width="900" alt="Premium Product Details">
+  <img src="./assets/gifs/product-details.gif" width="100%" alt="Premium Product Details">
 </p>
 
 Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless add-to-cart experience.
