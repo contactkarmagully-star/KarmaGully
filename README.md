@@ -58,6 +58,16 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
   <img src="./assets/gifs/homepage.gif" width="100%" alt="KarmaGully Homepage Demo">
 </p>
 
+ Product Details
+
+<p align="center">
+  <img src="./assets/gifs/product-details.gif" width="900" alt="Premium Product Details">
+</p>
+
+Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless add-to-cart experience.
+
+
+
 ---
 
 
