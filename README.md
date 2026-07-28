@@ -66,7 +66,13 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 
 Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless add-to-cart experience.
 
+ Secure Checkout
 
+<p align="center">
+  <img src="./assets/gifs/checkout.gif" width="900" alt="Secure Checkout Experience">
+</p>
+
+Fast, secure, and seamless checkout with multiple payment options, real-time order summary, and a smooth purchasing experience.
 
 ---
 
