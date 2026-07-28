@@ -52,13 +52,15 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 🌐 **Website:** https://karmagully.studio
 
 ---
-<h2>🏠 Homepage</h2>
+<h2>Homepage</h2>
 
 <p align="center">
   <img src="./assets/gifs/homepage.gif" width="100%" alt="KarmaGully Homepage Demo">
 </p>
 
- Product Details
+Welcome to KarmaGully — a premium anime-inspired e-commerce platform featuring a modern interface, immersive animations, AI-powered tools, and a seamless shopping experience built for anime enthusiasts.
+
+<h2>Product Details</h2>
 
 <p align="center">
   <img src="./assets/gifs/product-details.gif" width="100%" alt="Premium Product Details">
@@ -66,7 +68,7 @@ Modern e-commerce platform featuring AI-powered blog generation, SEO automation,
 
 Experience every detail before you buy—from high-resolution previews and multiple size options to detailed specifications and a seamless add-to-cart experience.
 
- Secure Checkout
+<h2> Secure Checkout</h2>
 
 <p align="center">
   <img src="./assets/gifs/checkout.gif" width="100%" alt="Secure Checkout Experience">
@@ -74,7 +76,7 @@ Experience every detail before you buy—from high-resolution previews and multi
 
 Fast, secure, and seamless checkout with multiple payment options, real-time order summary, and a smooth purchasing experience.
 
-AI Blog Generator
+<h2>AI Blog Generator</h2>
 
 <p align="center">
   <img src="./assets/gifs/ai-blog-generator.gif" width="100%" alt="AI Blog Generator Demo">
