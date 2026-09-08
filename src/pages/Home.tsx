@@ -4,6 +4,10 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import FlashSaleCard from '../components/FlashSaleCard';
 import VideoPlayer from '../components/VideoPlayer';
+import MerchProductsHorizontalScroll from '../components/MerchProductsHorizontalScroll';
+import MerchCategoriesGrid from '../components/MerchCategoriesGrid';
+import PromoBanner from '../components/PromoBanner';
+import SimplePromoBanner from '../components/SimplePromoBanner';
 import { Product, ProductVideo, AppSettings } from '../types';
 import { useState, useEffect } from 'react';
 import { getAllProducts, getAllProductVideos } from '../services/productService';
@@ -60,12 +64,35 @@ export default function Home() {
     };
     fetchData();
   }, []);
+
+  const getBannerConfig = (id: string) => {
+    if (!settings || !settings.banners) return undefined;
+    return settings.banners.find(b => b.id === id);
+  };
+
+  const renderBanner = (id: string) => {
+    if (!settings || !settings.banners) return null;
+    const banner = settings.banners.find(b => b.id === id);
+    if (!banner || !banner.isActive) return null;
+    return (
+      <SimplePromoBanner
+        title={banner.title}
+        subtitle={banner.subtitle}
+        linkTo={banner.linkTo}
+        linkText={banner.linkText}
+        showButton={banner.showButton}
+        accentColor={banner.accentColor}
+        imageBg={banner.imageBg}
+      />
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="space-y-16 md:space-y-24 pb-24"
+      className="space-y-2 md:space-y-3 pb-12"
     >
       {/* Hero Section */}
       <section className="relative pt-10 md:pt-16 pb-10 md:pb-12 overflow-hidden border-b border-white/5">
@@ -78,10 +105,10 @@ export default function Home() {
             className="space-y-4 md:space-y-5"
           >
             <h1 className="text-5xl md:text-8xl font-black italic uppercase leading-[0.85] tracking-tighter max-w-5xl mx-auto">
-              Premium <span className="text-gradient">Anime</span><br/>Metal Posters
+              Premium <span className="text-gradient">Anime</span><br/>Merch & Art Vault
             </h1>
             <p className="text-slate-400 text-sm md:text-xl max-w-2xl mx-auto font-medium">
-              Ultra-durable, high-definition metal prints. Limited drops every month.
+              Metal posters, 3D embroidered caps, tactical bags, UV tapestries & XXL gaming desk pads.
             </p>
           </motion.div>
           
@@ -95,21 +122,21 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      
       {/* Flash Sale - High Urgency */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
         <FlashSaleCard />
       </section>
 
-      {/* Featured Products - The Core Value */}
+      {/* Featured Metal Posters - Kept as standard grid */}
       <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-8 md:mb-12 gap-4 flex-wrap">
           <div className="space-y-2 md:space-y-3">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.6em] text-purple-500">The Collection</h2>
-            <h3 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter">Featured <span className="text-white/40">Drops</span></h3>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.6em] text-purple-500">Flagship Wall Art</h2>
+            <h3 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter">Featured <span className="text-white/40">Metal Posters</span></h3>
           </div>
-          <Link to="/shop" className="group flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors">
-            View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Link to="/shop?category=Anime%20Metal%20Posters" className="group flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors">
+            View All Posters <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
         
@@ -154,6 +181,72 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Anime Caps Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Anime Caps"
+        simpleHeading="Anime Caps"
+        elementId="merch-scroll-caps"
+        banner={getBannerConfig('caps')}
+      />
+
+      {/* Anime Bags Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Anime Bags"
+        simpleHeading="Anime Bags"
+        elementId="merch-scroll-bags"
+        banner={getBannerConfig('bags')}
+      />
+
+      {/* Futuristic Cyberpunk Promo Banner */}
+      <PromoBanner />
+
+      {/* Anime Tapestries Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Anime Tapestry"
+        simpleHeading="Anime Tapestries"
+        elementId="merch-scroll-tapestries"
+        banner={getBannerConfig('tapestry')}
+      />
+
+      {/* Anime Mouse Pads Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Anime Mouse Pad"
+        simpleHeading="Anime Mouse Pads"
+        elementId="merch-scroll-mousepads"
+        banner={getBannerConfig('mousepads')}
+      />
+
+      {/* Anime Gaming Pads Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Anime Gaming Pad"
+        simpleHeading="Anime Gaming Pads"
+        elementId="merch-scroll-gamingpads"
+        banner={getBannerConfig('gamingpads')}
+      />
+
+      {/* Metal Gear Collection Section wrapping its Banner */}
+      <MerchProductsHorizontalScroll
+        products={allProducts}
+        loading={loading}
+        categoryName="Metal Gear Collection"
+        simpleHeading="Metal Gear Collection"
+        elementId="merch-scroll-metalgear"
+        banner={getBannerConfig('metalgear')}
+      />
+
+      {/* Metal Categories Collection */}
+      <MerchCategoriesGrid />
 
       {/* Custom Dynamic Sections */}
       {settings?.homeSections && settings.homeSections.length > 0 && (
@@ -289,7 +382,7 @@ export default function Home() {
       </section>
 
       {/* Newsletter / Terminal Connection */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-8 pb-1">
         <TerminalSubscriber />
       </section>
     </motion.div>
