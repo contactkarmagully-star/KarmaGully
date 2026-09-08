@@ -253,6 +253,12 @@ service cloud.firestore {
       }
     }
 
+    // --- Influencers ---
+    match /influencers/{id} {
+      allow get: if true; // Public can resolve influencer links
+      allow list, write: if isAdmin(); // Only admins can list/add/edit/delete
+    }
+
     // 0. Global Safety Net (Moved to bottom)
     match /{document=**} {
       allow read, write: if false;
