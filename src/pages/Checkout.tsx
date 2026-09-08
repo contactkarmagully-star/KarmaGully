@@ -45,6 +45,25 @@ export default function Checkout() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem('referred_influencer');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.couponCode) {
+          setValidatingCoupon(true);
+          getCoupon(parsed.couponCode).then(coupon => {
+            if (coupon && coupon.isActive) {
+              setAppliedCoupon(coupon);
+            }
+          }).catch(err => console.error("Auto coupon apply error:", err)).finally(() => setValidatingCoupon(false));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     return subscribeToSettings(setSettings);
   }, []);
 
@@ -111,6 +130,47 @@ export default function Checkout() {
         throw new Error(stockCheck.error || "Inventory depletion detected.");
       }
 
+      // Calculate influencer commission if referred
+      let influencerCode = null;
+      let influencerCommission = null;
+      let influencerCommissionPaid = null;
+
+      const savedRef = localStorage.getItem('referred_influencer');
+      if (savedRef) {
+        try {
+          const parsed = JSON.parse(savedRef);
+          const { getInfluencerByCode } = await import('../services/influencerService');
+          const influencer = await getInfluencerByCode(parsed.code);
+          if (influencer && influencer.isActive) {
+            influencerCode = influencer.code;
+            influencerCommissionPaid = false;
+
+            // Retrieve costs and calculate commission!
+            const { getAllProducts } = await import('../services/productService');
+            const products = await getAllProducts();
+            
+            let totalCost = 0;
+            cart.forEach(item => {
+              const matchedProd = products.find(p => p.id === item.productId);
+              const costPrice = matchedProd?.costPrice !== undefined ? matchedProd.costPrice : (item.price * 0.5);
+              totalCost += costPrice * item.quantity;
+            });
+
+            const profit = Math.max(0, discountedTotal - totalCost);
+
+            if (influencer.commissionType === 'percentage_revenue') {
+              influencerCommission = Math.round(discountedTotal * (influencer.commissionValue / 100));
+            } else if (influencer.commissionType === 'percentage_profit') {
+              influencerCommission = Math.round(profit * (influencer.commissionValue / 100));
+            } else if (influencer.commissionType === 'fixed_per_sale') {
+              influencerCommission = influencer.commissionValue;
+            }
+          }
+        } catch (e) {
+          console.error("Error calculating influencer commission:", e);
+        }
+      }
+
       const orderData = {
         userId: user?.uid || auth.currentUser?.uid || null, // Link to account
         profileId: profile?.profileId || null, // Link to unique public ID
@@ -142,7 +202,10 @@ export default function Checkout() {
         paymentStatus: (formData.paymentMode === 'Online') ? 'Success' : 'Pending',
         orderStatus: 'Pending',
         razorpayOrderId: razorpayOrderId || null,
-        razorpayPaymentId: paymentId || null
+        razorpayPaymentId: paymentId || null,
+        influencerCode,
+        influencerCommission,
+        influencerCommissionPaid
       };
 
       const orderId = await createOrder(orderData as any);
@@ -154,7 +217,7 @@ export default function Checkout() {
       }
       
       // Trigger Notifications (Email + Telegram) in background
-      fetch('https://karmagully-website.onrender.com/api/notifications/order', {
+      fetch('/api/notifications/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -199,7 +262,7 @@ export default function Checkout() {
           ? (settings?.loyalty?.codVerificationAmount || 99) 
           : discountedTotal;
 
-        const response = await fetch('https://karmagully-website.onrender.com/api/razorpay/order', {
+        const response = await fetch('/api/razorpay/order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: paymentAmount, receipt: `order_${Date.now()}` })
@@ -220,7 +283,7 @@ export default function Checkout() {
           order_id: data.id,
           handler: async (response: any) => {
             try {
-              const verifyRes = await fetch('https://karmagully-website.onrender.com/api/razorpay/verify', {
+              const verifyRes = await fetch('/api/razorpay/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(response)
