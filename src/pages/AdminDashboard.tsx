@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, Package, ShoppingBag, Settings as SettingsIcon, LogOut, 
   Plus, Edit2, Trash2, Check, Clock, TrendingUp, Search, Truck,
-  ChevronRight, X, Database, ShieldAlert, Tag, Bell, FileText, Image as ImageIcon, Video, MoveUp, MoveDown, MessageSquare, Send, User, LayoutGrid, Rss, Wand2,
+  ChevronRight, X, Database, ShieldAlert, Tag, Bell, FileText, Image as ImageIcon, Video, MoveUp, MoveDown, MessageSquare, Send, User, LayoutGrid, Rss, Wand2, Sparkles,
   Instagram, Twitter, Facebook, Phone, Youtube, Globe, RefreshCw, AlertTriangle, Zap, Heart, Award, Layers, ShieldCheck, Star, FileSpreadsheet, Upload,
-  Cloud, Activity, CheckCircle2, AlertCircle, ExternalLink
+  Cloud, Activity, CheckCircle2, AlertCircle, ExternalLink, Users
 } from 'lucide-react';
 import { Product, Order, Category, BlogPost, BlogSettings, AppSettings, UserProfile, CourierPartner } from '../types';
 import { getAllProducts, addProduct, updateProduct, deleteProduct, bulkAddProducts } from '../services/productService';
@@ -27,6 +27,7 @@ import VideosTab from '../components/admin/VideosTab';
 import LoyaltyTab from '../components/admin/LoyaltyTab';
 import CouriersTab from '../components/admin/CouriersTab';
 import DomainHealthPage from '../components/admin/DomainHealthPage';
+import InfluencersTab from '../components/admin/InfluencersTab';
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { auth, db } from '../lib/firebase';
 
@@ -66,7 +67,7 @@ const compressImage = (base64: string, maxWidth: number = 800, maxHeight: number
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'orders' | 'admins' | 'settings' | 'coupons' | 'pages' | 'support' | 'blogs' | 'domain-check' | 'reviews' | 'product-videos' | 'loyalty' | 'couriers' | 'health'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'orders' | 'admins' | 'settings' | 'coupons' | 'pages' | 'support' | 'blogs' | 'domain-check' | 'reviews' | 'product-videos' | 'loyalty' | 'couriers' | 'health' | 'banners' | 'influencers'>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -655,6 +656,7 @@ export default function AdminDashboard() {
           <NavButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }} icon={<BarChart3 className="w-5 h-5" />} label="Overview" />
           <NavButton active={activeTab === 'products'} onClick={() => { setActiveTab('products'); setIsSidebarOpen(false); }} icon={<Package className="w-5 h-5" />} label="Products" />
           <NavButton active={activeTab === 'categories'} onClick={() => { setActiveTab('categories'); setIsSidebarOpen(false); }} icon={<LayoutGrid className="w-5 h-5" />} label="Categories" />
+          <NavButton active={activeTab === 'banners'} onClick={() => { setActiveTab('banners'); setIsSidebarOpen(false); }} icon={<Sparkles className="w-5 h-5" />} label="Section Banners" />
           <NavButton active={activeTab === 'blogs'} onClick={() => { setActiveTab('blogs'); setIsSidebarOpen(false); }} icon={<Rss className="w-5 h-5" />} label="Blogs" />
           <NavButton 
             active={activeTab === 'orders'} 
@@ -664,6 +666,7 @@ export default function AdminDashboard() {
             badge={activeTab === 'orders' ? 0 : newOrdersBadge}
           />
           <NavButton active={activeTab === 'coupons'} onClick={() => { setActiveTab('coupons'); setIsSidebarOpen(false); }} icon={<Tag className="w-5 h-5" />} label="Coupons" />
+          <NavButton active={activeTab === 'influencers'} onClick={() => { setActiveTab('influencers'); setIsSidebarOpen(false); }} icon={<Users className="w-5 h-5" />} label="Influencer Program" />
           <NavButton active={activeTab === 'pages'} onClick={() => { setActiveTab('pages'); setIsSidebarOpen(false); }} icon={<FileText className="w-5 h-5" />} label="Pages" />
           <NavButton 
             active={activeTab === 'support'} 
@@ -774,6 +777,7 @@ export default function AdminDashboard() {
           deletingId={deletingId}
         />}
         {activeTab === 'settings' && settings && <SettingsTab settings={settings} pages={pages} products={products} onSave={async (s) => { await updateSettings(s); fetchData(); }} />}
+        {activeTab === 'banners' && settings && <BannersTab settings={settings} products={products} onSave={async (s) => { await updateSettings(s); fetchData(); }} />}
         {activeTab === 'coupons' && <CouponsTab 
           coupons={coupons} 
           onAdd={async (c) => { try { await addCoupon(c); fetchData(); } catch (e: any) { alert(e.message); } }} 
@@ -785,6 +789,7 @@ export default function AdminDashboard() {
           deletingId={deletingId}
         />}
         {activeTab === 'pages' && <PagesTab pages={pages} onRefresh={fetchData} />}
+        {activeTab === 'influencers' && <InfluencersTab />}
         {activeTab === 'support' && <SupportTab />}
         {activeTab === 'loyalty' && <LoyaltyTab />}
         {activeTab === 'couriers' && <CouriersTab couriers={couriers} onRefresh={fetchData} />}
@@ -1513,12 +1518,558 @@ export default function AdminDashboard() {
   );
 }
 
+interface InteractiveBannerDesignerProps {
+  title: string;
+  subtitle: string;
+  description?: string;
+  linkText: string;
+  imageBg: string;
+  showButton: boolean;
+  brightness: number;
+  leftBrightness?: number;
+  hideText?: boolean;
+  buttonStyle: {
+    backgroundColor?: string;
+    textColor?: string;
+    borderRadius?: number;
+    fontSize?: number;
+    paddingX?: number;
+    paddingY?: number;
+    offsetX?: number;
+    offsetY?: number;
+    positionMode?: 'absolute' | 'normal';
+  };
+  accentColor?: 'purple' | 'cyan' | 'pink';
+  onUpdate: (updated: {
+    showButton: boolean;
+    brightness: number;
+    leftBrightness?: number;
+    buttonStyle: any;
+    hideText?: boolean;
+  }) => void;
+  recommendedSize: string;
+}
+
+function InteractiveBannerDesigner({
+  title,
+  subtitle,
+  description,
+  linkText,
+  imageBg,
+  showButton,
+  brightness,
+  leftBrightness = 100,
+  buttonStyle,
+  hideText = false,
+  accentColor = 'purple',
+  onUpdate,
+  recommendedSize
+}: InteractiveBannerDesignerProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const brightnessVal = brightness !== undefined ? brightness : 100;
+  const leftBrightnessVal = leftBrightness !== undefined ? leftBrightness : 100;
+  const overlayOpacity = Math.max(0, 1 - (brightnessVal / 100)) * 0.7;
+
+  // Safe defaults
+  const bStyle = buttonStyle || {};
+  const isAbsolute = bStyle.positionMode === 'absolute';
+  const btnBg = bStyle.backgroundColor || (accentColor === 'cyan' ? '#06b6d4' : accentColor === 'pink' ? '#ec4899' : '#a855f7');
+  const btnColor = bStyle.textColor || '#ffffff';
+  const btnRadius = bStyle.borderRadius !== undefined ? bStyle.borderRadius : 8;
+  const btnFontSize = bStyle.fontSize !== undefined ? bStyle.fontSize : 10;
+  const btnPadX = bStyle.paddingX !== undefined ? bStyle.paddingX : 20;
+  const btnPadY = bStyle.paddingY !== undefined ? bStyle.paddingY : 12;
+  const btnOffsetX = bStyle.offsetX !== undefined ? bStyle.offsetX : 50;
+  const btnOffsetY = bStyle.offsetY !== undefined ? bStyle.offsetY : 50;
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isAbsolute || !containerRef.current) return;
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateCoords(e);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || !isAbsolute) return;
+    updateCoords(e);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const updateCoords = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.min(100, Math.max(0, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+    const y = Math.min(100, Math.max(0, Math.round(((e.clientY - rect.top) / rect.height) * 100)));
+    onUpdate({
+      showButton,
+      brightness,
+      leftBrightness: leftBrightnessVal,
+      buttonStyle: {
+        ...bStyle,
+        offsetX: x,
+        offsetY: y
+      },
+      hideText
+    });
+  };
+
+  const hasText = !hideText && (title?.trim() || subtitle?.trim() || description?.trim());
+
+  return (
+    <div className="space-y-4">
+      {/* Visual Interactive Banner Preview Mockup */}
+      <div className="space-y-1">
+        <span className="text-[9px] font-black uppercase tracking-widest text-white/40 block">Visual Drag & Position Preview</span>
+        <div 
+          ref={containerRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          className={`relative h-36 sm:h-44 w-full rounded-2xl overflow-hidden border border-white/10 flex items-center p-4 sm:p-6 select-none ${isAbsolute ? 'cursor-crosshair' : 'cursor-default'} bg-black`}
+        >
+          {/* Background Image with Dynamic Brightness Filter */}
+          <div className="absolute inset-0 pointer-events-none">
+            {imageBg ? (
+              <img 
+                src={imageBg} 
+                alt="Banner Design" 
+                className="w-full h-full object-cover transition-all"
+                style={{ filter: `brightness(${brightnessVal}%)` }}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-[10px] font-mono text-white/20">NO BANNER IMAGE LOADED</div>
+            )}
+            {overlayOpacity > 0 && (
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" 
+                style={{ opacity: overlayOpacity }}
+              />
+            )}
+            {/* Left 30% Promo Area - Live Brightness visual preview overlay */}
+            <div 
+              className="absolute top-0 bottom-0 left-0 w-[30%] pointer-events-none transition-all duration-300 border-r border-cyan-500/20 z-[2]"
+              style={{
+                backdropFilter: `brightness(${leftBrightnessVal}%)`,
+                backgroundColor: `rgba(255, 255, 255, ${Math.max(0, (leftBrightnessVal - 100) / 400)})`,
+              }}
+            />
+          </div>
+
+          {/* Simple Cyber Grid Accent */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-30" />
+
+          {/* Texts (only shown if present) */}
+          {hasText && (
+            <div className="relative z-10 space-y-2 max-w-md pointer-events-none">
+              {subtitle?.trim() && (
+                <div className={`inline-flex items-center px-1.5 py-0.5 rounded text-[7px] font-mono font-black uppercase tracking-widest border border-purple-500/20 bg-purple-500/10 text-purple-300`}>
+                  {subtitle}
+                </div>
+              )}
+              
+              {title?.trim() && (
+                <h3 className="text-base sm:text-xl font-black italic uppercase tracking-tight text-white leading-none">
+                  {title}
+                </h3>
+              )}
+
+              {description?.trim() && (
+                <p className="text-[9px] sm:text-[10px] text-white/40 leading-relaxed uppercase font-medium">
+                  {description}
+                </p>
+              )}
+
+              {/* Show button in normal layout flow */}
+              {showButton && !isAbsolute && linkText && (
+                <div className="pt-1">
+                  <div 
+                    className="inline-flex items-center gap-1 font-black uppercase tracking-widest text-center"
+                    style={{
+                      backgroundColor: btnBg,
+                      color: btnColor,
+                      borderRadius: `${btnRadius}px`,
+                      fontSize: `${btnFontSize}px`,
+                      paddingLeft: `${btnPadX}px`,
+                      paddingRight: `${btnPadX}px`,
+                      paddingTop: `${btnPadY}px`,
+                      paddingBottom: `${btnPadY}px`,
+                    }}
+                  >
+                    <span>{linkText}</span>
+                    <span>→</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Absolutely Positioned / Drag & Drop Button Overlay */}
+          {showButton && isAbsolute && linkText && (
+            <div 
+              className="absolute pointer-events-auto select-none active:scale-95 active:cursor-grabbing transition-transform flex items-center gap-1 font-black uppercase tracking-widest text-center whitespace-nowrap shadow-2xl"
+              style={{
+                left: `${btnOffsetX}%`,
+                top: `${btnOffsetY}%`,
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: btnBg,
+                color: btnColor,
+                borderRadius: `${btnRadius}px`,
+                fontSize: `${btnFontSize}px`,
+                paddingLeft: `${btnPadX}px`,
+                paddingRight: `${btnPadX}px`,
+                paddingTop: `${btnPadY}px`,
+                paddingBottom: `${btnPadY}px`,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                border: isDragging ? '2px solid rgba(255,255,255,0.8)' : '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
+              <span>{linkText}</span>
+              <span>→</span>
+            </div>
+          )}
+
+          {/* Absolute corner label */}
+          <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 text-[7px] font-mono font-bold text-white/40 rounded uppercase tracking-wider">
+            {isAbsolute ? 'Absolute (Drag Me!)' : 'Inline Flow'}
+          </div>
+        </div>
+        {isAbsolute && (
+          <p className="text-[8px] font-bold uppercase tracking-widest text-purple-400/80 leading-normal text-center pt-1">
+            ✨ Click & hold the Action Button inside the preview box above to drag it to your perfect position!
+          </p>
+        )}
+      </div>
+
+      {/* Adjustments Sliders */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-4 rounded-2xl border border-white/5">
+        
+        {/* Left Column Controls */}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Show CTA Action Button</span>
+              <input 
+                type="checkbox" 
+                checked={showButton}
+                onChange={e => onUpdate({
+                  showButton: e.target.checked,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: bStyle,
+                  hideText
+                })}
+                className="w-4 h-4 accent-purple-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-1 border-t border-white/5">
+              <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Hide Title & Subtitle Texts</span>
+              <input 
+                type="checkbox" 
+                checked={hideText}
+                onChange={e => onUpdate({
+                  showButton,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: bStyle,
+                  hideText: e.target.checked
+                })}
+                className="w-4 h-4 accent-cyan-400 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Banner Background Brightness</label>
+              <span className="text-[9px] font-black text-purple-400">{brightnessVal}%</span>
+            </div>
+            <input 
+              type="range" 
+              min="20" 
+              max="150" 
+              value={brightnessVal}
+              onChange={e => onUpdate({
+                showButton,
+                brightness: parseInt(e.target.value),
+                leftBrightness: leftBrightnessVal,
+                buttonStyle: bStyle,
+                hideText
+              })}
+              className="w-full accent-purple-500 bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-[7px] font-semibold text-white/30 uppercase tracking-widest">Set to 100% or more to make the banner image fully bright (no dark overlay)</p>
+          </div>
+
+          <div className="space-y-1 pt-2 border-t border-white/5">
+            <div className="flex justify-between">
+              <label className="text-[9px] font-black uppercase tracking-widest text-cyan-400">Left 30% Promo Area Brightness</label>
+              <span className="text-[9px] font-black text-cyan-400">{leftBrightnessVal}%</span>
+            </div>
+            <input 
+              type="range" 
+              min="50" 
+              max="200" 
+              value={leftBrightnessVal}
+              onChange={e => onUpdate({
+                showButton,
+                brightness,
+                leftBrightness: parseInt(e.target.value),
+                buttonStyle: bStyle,
+                hideText
+              })}
+              className="w-full accent-cyan-400 bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-[7px] font-semibold text-white/30 uppercase tracking-widest">Boost the brightness specifically for the left promo card area (50-200%)</p>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block">Button Placement Mode</label>
+            <select
+              value={isAbsolute ? 'absolute' : 'normal'}
+              onChange={e => onUpdate({
+                showButton,
+                brightness,
+                leftBrightness: leftBrightnessVal,
+                buttonStyle: {
+                  ...bStyle,
+                  positionMode: e.target.value as any,
+                  // Initialize safe defaults on switch
+                  offsetX: btnOffsetX,
+                  offsetY: btnOffsetY
+                },
+                hideText
+              })}
+              className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white outline-none focus:border-purple-500/50"
+            >
+              <option value="normal">Inline Standard Flow (Sits nicely under text)</option>
+              <option value="absolute">Place Anywhere (Interactive Drag & Drop / absolute coordinates)</option>
+            </select>
+          </div>
+
+          {isAbsolute && (
+            <div className="space-y-3 pt-2 border-t border-white/5">
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <label className="text-[8px] font-black uppercase tracking-widest text-white/40">X Position (Left Offset)</label>
+                  <span className="text-[8px] font-black text-purple-400">{btnOffsetX}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={btnOffsetX}
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    leftBrightness: leftBrightnessVal,
+                    buttonStyle: { ...bStyle, offsetX: parseInt(e.target.value) },
+                    hideText
+                  })}
+                  className="w-full accent-purple-500 bg-zinc-800 h-1 rounded appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Y Position (Top Offset)</label>
+                  <span className="text-[8px] font-black text-purple-400">{btnOffsetY}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={btnOffsetY}
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    leftBrightness: leftBrightnessVal,
+                    buttonStyle: { ...bStyle, offsetY: parseInt(e.target.value) },
+                    hideText
+                  })}
+                  className="w-full accent-purple-500 bg-zinc-800 h-1 appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column Button Visual Style Customizer */}
+        <div className="space-y-3 pt-4 md:pt-0 md:border-l md:border-white/5 md:pl-4">
+          <span className="text-[9px] font-black uppercase tracking-widest text-purple-400 block pb-1 border-b border-white/5">🖌️ Action Button Customizer</span>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-white/40">BG HEX</label>
+              <div className="flex gap-1.5">
+                <input 
+                  type="color" 
+                  value={btnBg} 
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    buttonStyle: { ...bStyle, backgroundColor: e.target.value },
+                    hideText
+                  })}
+                  className="w-5 h-5 bg-transparent border-0 cursor-pointer rounded"
+                />
+                <input 
+                  type="text" 
+                  value={btnBg} 
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    buttonStyle: { ...bStyle, backgroundColor: e.target.value },
+                    hideText
+                  })}
+                  className="w-full bg-black border border-white/10 rounded px-2 py-0.5 text-[9px] font-bold text-white uppercase outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Text HEX</label>
+              <div className="flex gap-1.5">
+                <input 
+                  type="color" 
+                  value={btnColor} 
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    buttonStyle: { ...bStyle, textColor: e.target.value },
+                    hideText
+                  })}
+                  className="w-5 h-5 bg-transparent border-0 cursor-pointer rounded"
+                />
+                <input 
+                  type="text" 
+                  value={btnColor} 
+                  onChange={e => onUpdate({
+                    showButton,
+                    brightness,
+                    buttonStyle: { ...bStyle, textColor: e.target.value },
+                    hideText
+                  })}
+                  className="w-full bg-black border border-white/10 rounded px-2 py-0.5 text-[9px] font-bold text-white uppercase outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Radius</label>
+                <span className="text-[8px] font-black text-slate-400">{btnRadius}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="30" 
+                value={btnRadius}
+                onChange={e => onUpdate({
+                  showButton,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: { ...bStyle, borderRadius: parseInt(e.target.value) },
+                  hideText
+                })}
+                className="w-full accent-purple-500 bg-zinc-800 h-1 appearance-none cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Font Size</label>
+                <span className="text-[8px] font-black text-slate-400">{btnFontSize}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="8" 
+                max="18" 
+                value={btnFontSize}
+                onChange={e => onUpdate({
+                  showButton,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: { ...bStyle, fontSize: parseInt(e.target.value) },
+                  hideText
+                })}
+                className="w-full accent-purple-500 bg-zinc-800 h-1 appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Pad X</label>
+                <span className="text-[8px] font-black text-slate-400">{btnPadX}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="6" 
+                max="40" 
+                value={btnPadX}
+                onChange={e => onUpdate({
+                  showButton,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: { ...bStyle, paddingX: parseInt(e.target.value) },
+                  hideText
+                })}
+                className="w-full accent-purple-500 bg-zinc-800 h-1 appearance-none cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Pad Y</label>
+                <span className="text-[8px] font-black text-slate-400">{btnPadY}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="4" 
+                max="25" 
+                value={btnPadY}
+                onChange={e => onUpdate({
+                  showButton,
+                  brightness,
+                  leftBrightness: leftBrightnessVal,
+                  buttonStyle: { ...bStyle, paddingY: parseInt(e.target.value) },
+                  hideText
+                })}
+                className="w-full accent-purple-500 bg-zinc-800 h-1 appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SettingsTab({ settings, pages, products, onSave }: { settings: AppSettings, pages: any[], products: Product[], onSave: (s: AppSettings) => Promise<void> }) {
-  const [form, setForm] = useState(settings);
+  const [form, setForm] = useState({ 
+    ...settings, 
+    banners: settings.banners || DEFAULT_SETTINGS.banners,
+    promoBanner: settings.promoBanner || DEFAULT_SETTINGS.promoBanner
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setForm(settings);
+    setForm({ 
+      ...settings, 
+      banners: settings.banners || DEFAULT_SETTINGS.banners,
+      promoBanner: settings.promoBanner || DEFAULT_SETTINGS.promoBanner
+    });
   }, [settings]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'faviconUrl') => {
@@ -1557,6 +2108,53 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
         // Convert to optimized Base64
         const optimizedBase64 = canvas.toDataURL('image/png', 0.8);
         setForm(prev => ({ ...prev, [field]: optimizedBase64 }));
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>, bannerId: string, isBigHero: boolean = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.src = reader.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Banners are wide landscape, so let's enforce a maximum width of 1400/1200 px to keep Firestore documents lightweight
+        const maxWidth = isBigHero ? 1400 : 1200;
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to optimized JPEG for maximum database lightweight storage
+        const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+        if (isBigHero) {
+          const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+          setForm(prev => ({ 
+            ...prev, 
+            promoBanner: { ...current, imageBg: optimizedBase64 } 
+          }));
+        } else {
+          const newBanners = [...(form.banners || [])];
+          const bidx = newBanners.findIndex(b => b.id === bannerId);
+          if (bidx !== -1) {
+            newBanners[bidx].imageBg = optimizedBase64;
+            setForm(prev => ({ ...prev, banners: newBanners }));
+          }
+        }
       };
     };
     reader.readAsDataURL(file);
@@ -1917,6 +2515,30 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
                  className="w-5 h-5 accent-amber-500" 
                />
             </div>
+            <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5 group hover:border-pink-500/30 transition-all">
+               <div className="flex items-center gap-3">
+                 <Heart className="w-4 h-4 text-pink-500" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Hide Wishlist in Banners</span>
+               </div>
+               <input 
+                 type="checkbox" 
+                 checked={!!form.features?.bannerHideWishlist} 
+                 onChange={e => setForm({...form, features: { ...(form.features || DEFAULT_SETTINGS.features), bannerHideWishlist: e.target.checked }})}
+                 className="w-5 h-5 accent-pink-500" 
+               />
+            </div>
+            <div className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5 group hover:border-cyan-500/30 transition-all">
+               <div className="flex items-center gap-3">
+                 <Sparkles className="w-4 h-4 text-cyan-500" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Hide Badges in Banners</span>
+               </div>
+               <input 
+                 type="checkbox" 
+                 checked={!!form.features?.bannerHideBadges} 
+                 onChange={e => setForm({...form, features: { ...(form.features || DEFAULT_SETTINGS.features), bannerHideBadges: e.target.checked }})}
+                 className="w-5 h-5 accent-cyan-500" 
+               />
+            </div>
           </div>
 
           {form.features?.trustBadges && (
@@ -2233,6 +2855,17 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
           </div>
         </div>
 
+        <div className="pt-8 border-t border-white/5 space-y-4">
+          <div className="p-6 bg-purple-500/5 rounded-2xl border border-purple-500/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-400 mb-1">Looking for Banner Settings?</p>
+              <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest leading-relaxed">
+                All banner designs, brightness splits, and drag-and-drop button placements have been moved to their own dedicated <b>"Section Banners"</b> tab in the left sidebar.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <button 
           onClick={handleSave}
           disabled={saving}
@@ -2242,6 +2875,417 @@ function SettingsTab({ settings, pages, products, onSave }: { settings: AppSetti
         </button>
       </div>
     );
+}
+
+function BannersTab({ settings, products, onSave }: { settings: AppSettings, products: Product[], onSave: (s: AppSettings) => Promise<void> }) {
+  const [form, setForm] = useState({ 
+    ...settings, 
+    banners: settings.banners || DEFAULT_SETTINGS.banners,
+    promoBanner: settings.promoBanner || DEFAULT_SETTINGS.promoBanner
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm({ 
+      ...settings, 
+      banners: settings.banners || DEFAULT_SETTINGS.banners,
+      promoBanner: settings.promoBanner || DEFAULT_SETTINGS.promoBanner
+    });
+  }, [settings]);
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>, bannerId: string, isBigHero: boolean = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.src = reader.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const maxWidth = isBigHero ? 1400 : 1200;
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+        if (isBigHero) {
+          const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+          setForm(prev => ({ 
+            ...prev, 
+            promoBanner: { ...current, imageBg: optimizedBase64 } 
+          }));
+        } else {
+          const newBanners = [...(form.banners || [])];
+          const bidx = newBanners.findIndex(b => b.id === bannerId);
+          if (bidx !== -1) {
+            newBanners[bidx].imageBg = optimizedBase64;
+            setForm(prev => ({ ...prev, banners: newBanners }));
+          }
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(form);
+      alert('Section Banners updated successfully!');
+    } catch (err: any) {
+      alert('Error updating banners: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-3">
+          <Sparkles className="w-7 h-7 text-neon-purple animate-pulse" /> 
+          Banner Design & Customisation Center
+        </h2>
+        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+          The ultimate interface to modify typography, action buttons, backgrounds, and specific brightness splits of your storefront layouts.
+        </p>
+      </div>
+
+      {/* Hero Banner Section */}
+      <div className="glass-morphism p-6 sm:p-8 rounded-[2rem] border border-white/5 space-y-6">
+        <div className="flex items-center gap-3 text-neon-purple border-b border-white/5 pb-4">
+          <Layers className="w-5 h-5" />
+          <h3 className="text-sm font-black uppercase tracking-[0.25em]">Big Hero Home Promo Banner</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <AdminInput 
+            label="Banner Title"
+            value={form.promoBanner?.title || ''}
+            onChange={(e: any) => {
+              const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+              setForm({ ...form, promoBanner: { ...current, title: e.target.value } });
+            }}
+          />
+          <AdminInput 
+            label="Banner Subtitle"
+            value={form.promoBanner?.subtitle || ''}
+            onChange={(e: any) => {
+              const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+              setForm({ ...form, promoBanner: { ...current, subtitle: e.target.value } });
+            }}
+          />
+        </div>
+
+        <AdminInput 
+          label="Main Description (Optional)"
+          value={form.promoBanner?.description || ''}
+          onChange={(e: any) => {
+            const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+            setForm({ ...form, promoBanner: { ...current, description: e.target.value } });
+          }}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <AdminInput 
+            label="Destination Link URL"
+            value={form.promoBanner?.linkTo || ''}
+            onChange={(e: any) => {
+              const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+              setForm({ ...form, promoBanner: { ...current, linkTo: e.target.value } });
+            }}
+          />
+          <AdminInput 
+            label="Action Button Text (CTA Text)"
+            value={form.promoBanner?.linkText || ''}
+            onChange={(e: any) => {
+              const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+              setForm({ ...form, promoBanner: { ...current, linkText: e.target.value } });
+            }}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Banner Background Cover Image</label>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <input 
+                  type="file" 
+                  id="hero-banner-file-tab"
+                  accept="image/*"
+                  onChange={(e) => handleBannerUpload(e, 'big-hero', true)}
+                  className="hidden"
+                />
+                <label 
+                  htmlFor="hero-banner-file-tab"
+                  className="flex flex-col items-center justify-center border border-dashed border-purple-500/30 hover:border-purple-500 bg-purple-500/5 hover:bg-purple-500/10 rounded-xl p-4 cursor-pointer text-center group transition-all"
+                >
+                  <ImageIcon className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform mb-1" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white">Upload Image</span>
+                  <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest mt-0.5">Recommended: 1400 x 450 PX</span>
+                </label>
+              </div>
+
+              <div className="flex-1">
+                <AdminInput 
+                  label="Or Paste External Image URL"
+                  value={form.promoBanner?.imageBg || ''}
+                  onChange={(e: any) => {
+                    const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+                    setForm({ ...form, promoBanner: { ...current, imageBg: e.target.value } });
+                  }}
+                  placeholder="https://example.com/banner-graphic.jpg"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Display Layout Style</label>
+              <select
+                value={form.promoBanner?.imageLayout || 'split'}
+                onChange={e => {
+                  const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+                  setForm({ ...form, promoBanner: { ...current, imageLayout: e.target.value as any } });
+                }}
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-purple-500/50"
+              >
+                <option value="split">Side Split Layout (Aesthetic Frame + accents)</option>
+                <option value="full">Full Cover Layout (Background cover image)</option>
+              </select>
+            </div>
+            <div className="p-3 bg-purple-500/5 rounded-xl border border-purple-500/10 text-[9px] font-bold text-white/60 leading-normal uppercase">
+              Use high-resolution 1400 x 450 PX landscape assets. Under "Full Cover", the graphic expands back-to-edge. Under "Split", the banner image remains inside its industrial aesthetic preview frame!
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Drag & Drop Visual Editor for Big Hero Banner */}
+        <div className="pt-6 border-t border-white/5 space-y-3">
+          <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 block">✨ INTERACTIVE VISUAL PLACEMENT WORKSPACE</span>
+          <InteractiveBannerDesigner
+            title={form.promoBanner?.title || ''}
+            subtitle={form.promoBanner?.subtitle || ''}
+            description={form.promoBanner?.description || ''}
+            linkText={form.promoBanner?.linkText || 'Shop Now'}
+            imageBg={form.promoBanner?.imageBg || ''}
+            showButton={form.promoBanner?.showButton !== false}
+            brightness={form.promoBanner?.brightness ?? 100}
+            leftBrightness={form.promoBanner?.leftBrightness ?? 100}
+            buttonStyle={form.promoBanner?.buttonStyle || {}}
+            hideText={form.promoBanner?.hideText}
+            accentColor="purple"
+            recommendedSize="1400 x 450 PX"
+            onUpdate={(updated) => {
+              const current = form.promoBanner || DEFAULT_SETTINGS.promoBanner!;
+              setForm({
+                ...form,
+                promoBanner: {
+                  ...current,
+                  showButton: updated.showButton,
+                  brightness: updated.brightness,
+                  leftBrightness: updated.leftBrightness,
+                  buttonStyle: updated.buttonStyle,
+                  hideText: updated.hideText
+                }
+              });
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Dynamic Section Promo Banners */}
+      <div className="glass-morphism p-6 sm:p-8 rounded-[2rem] border border-white/5 space-y-6">
+        <div className="flex items-center gap-3 text-neon-blue border-b border-white/5 pb-4">
+          <LayoutGrid className="w-5 h-5 text-neon-blue" />
+          <h3 className="text-sm font-black uppercase tracking-[0.25em]">Dynamic Section Promo Banners</h3>
+        </div>
+        <p className="text-[10px] font-bold text-slate-400 leading-normal uppercase">
+          These banners show up directly in each product collection row. Adjust titles, subtitles, links, background images, and brightness levels.
+        </p>
+
+        <div className="space-y-8">
+          {(form.banners || []).map((banner, bidx) => (
+            <div key={banner.id} className="bg-white/5 p-5 rounded-[2rem] border border-white/5 space-y-4 hover:border-cyan-500/20 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">
+                  Banner: Above {banner.id === 'caps' ? 'Caps' : banner.id === 'bags' ? 'Bags' : banner.id === 'tapestry' ? 'Tapestries' : banner.id === 'mousepads' ? 'Mouse Pads' : banner.id === 'gamingpads' ? 'Gaming Pads' : 'Metal Gear'} Section
+                </span>
+                <div className="flex items-center gap-2">
+                  <label className="text-[8px] font-black uppercase tracking-widest text-white/40">Active State</label>
+                  <input 
+                    type="checkbox" 
+                    checked={banner.isActive}
+                    onChange={e => {
+                      const newBanners = [...(form.banners || [])];
+                      newBanners[bidx].isActive = e.target.checked;
+                      setForm({ ...form, banners: newBanners });
+                    }}
+                    className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AdminInput 
+                  label="Banner Title"
+                  value={banner.title || ''}
+                  onChange={(e: any) => {
+                    const newBanners = [...(form.banners || [])];
+                    newBanners[bidx].title = e.target.value;
+                    setForm({ ...form, banners: newBanners });
+                  }}
+                  placeholder="Leave blank to completely hide title"
+                />
+                <AdminInput 
+                  label="Banner Subtitle"
+                  value={banner.subtitle || ''}
+                  onChange={(e: any) => {
+                    const newBanners = [...(form.banners || [])];
+                    newBanners[bidx].subtitle = e.target.value;
+                    setForm({ ...form, banners: newBanners });
+                  }}
+                  placeholder="Leave blank to completely hide subtitle"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AdminInput 
+                  label="Custom Destination Link"
+                  value={banner.linkTo || ''}
+                  onChange={(e: any) => {
+                    const newBanners = [...(form.banners || [])];
+                    newBanners[bidx].linkTo = e.target.value;
+                    setForm({ ...form, banners: newBanners });
+                  }}
+                />
+                <AdminInput 
+                  label="Button Text"
+                  value={banner.linkText || ''}
+                  onChange={(e: any) => {
+                    const newBanners = [...(form.banners || [])];
+                    newBanners[bidx].linkText = e.target.value;
+                    setForm({ ...form, banners: newBanners });
+                  }}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Banner Background Cover Image</label>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <input 
+                        type="file" 
+                        id={`banner-file-tab-${banner.id}`}
+                        accept="image/*"
+                        onChange={(e) => handleBannerUpload(e, banner.id, false)}
+                        className="hidden"
+                      />
+                      <label 
+                        htmlFor={`banner-file-tab-${banner.id}`}
+                        className="flex flex-col items-center justify-center border border-dashed border-cyan-500/30 hover:border-cyan-500 bg-cyan-500/5 hover:bg-cyan-500/10 rounded-xl p-3 cursor-pointer text-center group transition-all"
+                      >
+                        <ImageIcon className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform mb-1" />
+                        <span className="text-[9px] font-black uppercase tracking-wider text-white">Upload Image</span>
+                        <span className="text-[7px] font-bold text-white/40 uppercase tracking-widest mt-0.5">Recommended: 1200 x 300 PX</span>
+                      </label>
+                    </div>
+
+                    <div className="flex-1">
+                      <AdminInput 
+                        label="Or Paste Image URL"
+                        value={banner.imageBg || ''}
+                        onChange={(e: any) => {
+                          const newBanners = [...(form.banners || [])];
+                          newBanners[bidx].imageBg = e.target.value;
+                          setForm({ ...form, banners: newBanners });
+                        }}
+                        placeholder="https://example.com/section-banner.jpg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[8px] font-black uppercase tracking-widest text-white/40 block">Accent Theme Color</label>
+                    <select
+                      value={banner.accentColor || 'cyan'}
+                      onChange={e => {
+                        const newBanners = [...(form.banners || [])];
+                        newBanners[bidx].accentColor = e.target.value as any;
+                        setForm({ ...form, banners: newBanners });
+                      }}
+                      className="bg-black border border-white/10 rounded px-3 py-2 text-[10px] font-bold text-white outline-none w-full"
+                    >
+                      <option value="cyan">Cyber Cyan</option>
+                      <option value="purple">Quantum Purple</option>
+                      <option value="pink">Hyper Pink</option>
+                    </select>
+                  </div>
+
+                  <div className="p-3 bg-cyan-500/5 rounded-xl border border-cyan-500/10 text-[8px] font-bold text-white/60 uppercase leading-normal">
+                    📐 Integrated Banner Specs: Best prepared as portrait artwork at <span className="text-cyan-400 font-extrabold">600 x 800 PX (3:4 aspect ratio)</span>. In the new unified layout, this banner serves as a gorgeous glowing vertical background on the left of your category row!
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Drag & Drop Visual Editor for Dynamic Section Banners */}
+              <div className="pt-4 border-t border-white/5 space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 block">✨ INTERACTIVE VISUAL PLACEMENT WORKSPACE</span>
+                <InteractiveBannerDesigner
+                  title={banner.title || ''}
+                  subtitle={banner.subtitle || ''}
+                  linkText={banner.linkText || 'Shop Now'}
+                  imageBg={banner.imageBg || ''}
+                  showButton={banner.showButton !== false}
+                  brightness={banner.brightness ?? 100}
+                  leftBrightness={banner.leftBrightness ?? 100}
+                  buttonStyle={banner.buttonStyle || {}}
+                  hideText={banner.hideText}
+                  accentColor={banner.accentColor || 'cyan'}
+                  recommendedSize="1200 x 300 PX"
+                  onUpdate={(updated) => {
+                    const newBanners = [...(form.banners || [])];
+                    newBanners[bidx].showButton = updated.showButton;
+                    newBanners[bidx].brightness = updated.brightness;
+                    newBanners[bidx].leftBrightness = updated.leftBrightness;
+                    newBanners[bidx].buttonStyle = updated.buttonStyle;
+                    newBanners[bidx].hideText = updated.hideText;
+                    setForm({ ...form, banners: newBanners });
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button 
+        onClick={handleSave}
+        disabled={saving}
+        className="w-full py-4 bg-neon-purple text-white font-black uppercase tracking-widest text-xs rounded-xl hover:bg-neon-blue transition-all disabled:opacity-50 shadow-lg shadow-purple-500/15"
+      >
+        {saving ? 'Syncing Banners...' : 'Save & Publish All Banners'}
+      </button>
+    </div>
+  );
 }
 
 function CouponsTab({ coupons, onAdd, onDelete, deletingId }: { coupons: Coupon[], onAdd: (c: Coupon) => Promise<void>, onDelete: (code: string) => Promise<void>, deletingId: string | null }) {
