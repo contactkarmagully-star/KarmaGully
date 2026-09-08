@@ -36,6 +36,7 @@ export interface Product {
   wishlistCount?: number;
   isTrending?: boolean;
   isNewArrival?: boolean;
+  costPrice?: number; // Cost to produce item for profit calculation
 }
 
 export interface FlashSale {
@@ -96,12 +97,65 @@ export interface AppSettings {
     reviews: boolean;
     videoSection: boolean;
     variantImages: boolean;
+    bannerHideWishlist?: boolean;
+    bannerHideBadges?: boolean;
   };
   trustBadgesContent: {
     quality: boolean;
     resistant: boolean;
     easyMount: boolean;
     cod: boolean;
+  };
+  banners?: {
+    id: string;
+    title: string;
+    subtitle: string;
+    linkTo: string;
+    linkText: string;
+    showButton: boolean;
+    isActive: boolean;
+    imageBg?: string;
+    accentColor?: 'purple' | 'cyan' | 'pink';
+    brightness?: number; // 0 - 100
+    leftBrightness?: number; // 0 - 200
+    buttonStyle?: {
+      backgroundColor?: string;
+      textColor?: string;
+      borderRadius?: number; // px border radius
+      fontSize?: number; // px size
+      paddingX?: number; // px padding
+      paddingY?: number; // px padding
+      offsetX?: number; // % position from left
+      offsetY?: number; // % position from top
+      positionMode?: 'absolute' | 'normal';
+    };
+    hideText?: boolean;
+  }[];
+  promoBanner?: {
+    isActive: boolean;
+    title: string;
+    subtitle: string;
+    description: string;
+    linkTo: string;
+    linkText: string;
+    imageBg: string;
+    imageLayout: 'full' | 'split';
+    imageOpacity?: number;
+    showButton?: boolean;
+    brightness?: number; // 0 - 100
+    leftBrightness?: number; // 0 - 200
+    hideText?: boolean;
+    buttonStyle?: {
+      backgroundColor?: string;
+      textColor?: string;
+      borderRadius?: number;
+      fontSize?: number;
+      paddingX?: number;
+      paddingY?: number;
+      offsetX?: number;
+      offsetY?: number;
+      positionMode?: 'absolute' | 'normal';
+    };
   };
 }
 
@@ -123,6 +177,9 @@ export interface Order {
   trackingId?: string;
   deliveryPartner?: string;
   createdAt: number;
+  influencerCode?: string; // Referring influencer code
+  influencerCommission?: number; // Calculated commission amount for this order
+  influencerCommissionPaid?: boolean; // Whether commission has been paid to influencer
 }
 
 export interface OrderItem {
@@ -249,5 +306,17 @@ export interface UserProfile {
   badge?: string;
   loyaltyTier?: number; // 1: Trusted, 2: Collector, 3: Elite
   profileId?: string;
+  createdAt: number;
+}
+
+export interface Influencer {
+  id: string; // unique code all lowercase (e.g. sam123)
+  name: string;
+  code: string; // display or stored slug (lowercase version of ID)
+  couponCode: string; // coupon used (e.g. SAM10)
+  commissionType: 'percentage_revenue' | 'percentage_profit' | 'fixed_per_sale';
+  commissionValue: number; // e.g. 10 for 10%
+  isActive: boolean;
+  clicks?: number; // total clicks tracked
   createdAt: number;
 }
